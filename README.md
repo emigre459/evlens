@@ -8,7 +8,10 @@ TBD
 
 # Setting Up Dev Environment
 ## [With Poetry Installed](https://python-poetry.org/docs/basic-usage/#activating-the-virtual-environment)
+
 ```bash
+poetry config virtualenvs.in-project true # only if you haven't already, lets VSCode see the interpreter from the virtual env
+poetry install
 poetry shell
 ```
 
