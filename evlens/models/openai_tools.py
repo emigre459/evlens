@@ -62,3 +62,32 @@ def count_image_tokens(
     else:
         return 85 # default tokens for low-res
     
+    
+def ask_simple_vision_question(
+    question: str,
+    img_url: str
+) -> str:
+    
+    client = OpenAI()
+    
+    response = client.chat.completions.create(
+    model="gpt-4-vision-preview",
+    messages=[
+        {
+        "role": "user",
+        "content": [
+            {"type": "text", "text": question},
+            {
+            "type": "image_url",
+            "image_url": {
+                "url": img_url,
+            },
+            },
+        ],
+        }
+    ],
+    max_tokens=300,
+    )
+
+    return response.choices[0].message.content
+    
