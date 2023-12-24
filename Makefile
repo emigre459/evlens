@@ -4,6 +4,8 @@
 # GLOBALS                                                                       #
 #################################################################################
 
+#TODO: setup for poetry instead of conda (check for poetry, then follow README instructions)
+
 PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 BUCKET = [OPTIONAL] your-bucket-for-syncing-data (do not include 's3://')
 PROFILE = default
