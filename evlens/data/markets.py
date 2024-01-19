@@ -23,10 +23,8 @@ def clean_adfc_charging_stations_data(
     filepath: str,
     include_level2: bool = True,
     revenue_loss_plug_fraction: float = 0.25,
-    annual_revenue_estimate_per_dc_plug: float = DC_PLUG_MONTHLY_REVENUE_MEDIUM * 12,
-    annual_revenue_estimate_per_level2_plug: float = L2_PLUG_MONTHLY_REVENUE_MEDIUM * 12,
-    num_plugs_per_station_dc: int = 4,
-    num_plugs_per_station_level2: int = 4,
+    annual_revenue_estimate_per_dc_plug: float = DC_PLUG_MONTHLY_REVENUE_HIGH * 12,
+    annual_revenue_estimate_per_level2_plug: float = L2_PLUG_MONTHLY_REVENUE_HIGH * 12,
 ) -> pd.DataFrame:
     
     # Including level 2 chargers suggests monthly revenue of $3000 (2 DC chargers + 4 AC)
