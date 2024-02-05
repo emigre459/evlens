@@ -79,7 +79,31 @@ def ask_simple_vision_question(
     img_url: str = None,
     img_filepath: str = None
 ) -> str:
-    
+    '''
+    Allows a single question to be sent along with an image file to query 
+    GPT-4V.
+
+    Parameters
+    ----------
+    question : str
+        Question/prompt
+    img_url : str, optional
+        URL of image, must not be None if `img_filepath` is None, 
+        by default None
+    img_filepath : str, optional
+        Filepath to local image, must not be None if `img_url` is None, 
+        by default None
+
+    Returns
+    -------
+    str
+        Model's text response to prompt + image combination.
+
+    Raises
+    ------
+    ValueError
+        No image provided.
+    '''
     client = OpenAI()
     
     if img_url is not None:
