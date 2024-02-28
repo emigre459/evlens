@@ -25,6 +25,7 @@ transformers = "^4.37.1"
 torch = "^2.1.2"
 selenium = "^4.17.2"
 beautifulsoup4 = "^4.12.3"
+codecarbon = "^2.3.4"
 
 
 [build-system]
