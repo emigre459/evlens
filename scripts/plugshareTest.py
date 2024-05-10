@@ -31,6 +31,7 @@ class Scraper:
             final_login = self.driver.find_element(By.XPATH, "//*[@id=\"auth-form\"]/md-content/div[5]/button")
             final_login.click()
                 
+            time.sleep(2)
                 #esc_button = driver.find_element(By.XPATH, "//*[@id=\"dialogContent_authenticate\"]/button/md-icon")
                 #esc_button.click()
         except:
@@ -62,38 +63,52 @@ class Scraper:
         except:
             self.hours = "NA"
 
-        try: # FIND CHECKINS
+        try: # FIND CHECKINS 
             self.checkins = self.driver.find_element(By.XPATH, "//*[@id=\"checkins\"]").text
             self.checkins = self.checkins.split(' ')[1].split('\n')[0]
             #checkins = checkins.split('\n')[0]
-            
-            #self.comments = self.driver.find_elements(By.CLASS_NAME, "comment ng-binding basic")
-            #for comment in self.comments:
-            #    print(comment.text)
-                #print(comment.text.replace("check_circle",""))
-
         except:
             pass
 
-        try:
-            self.nearby_locations = self.driver.find_elements(By.CLASS_NAME, "location ng-scope mapreact")
-            print(self.nearby_locations + "TOTAL NEARBY LOCATIONS LIST")
-            for location in self.nearby_locations:
-                print(location.text + "NEARBY LOCATIONS")
+        try: # FIND COMMENTS
+           
+            self.commentList = []
+            self.comments = self.driver.find_elements(By.CLASS_NAME, "details")
+            for comment in self.comments:
+                self.commentList.append(comment.text)
+                print(comment.text)
+             
+            for comment in self.commentList:
+                comment.replace("check_circle", "")
+            self.finalComments = ', '.join(self.commentList)
+        except:
+            pass
+
+        try: # FIND NEARBY LOCATIONS
+            #self.nearby_locations = self.driver.find_element(By.XPATH, "//*[@id=\"nearby\"]/div[2]/div[1]")
+            #self.nearby_locations.click()
+            time.sleep(3)
+            #self.plugshare_login()
+            #time.sleep(1)
+            #self.data_scrape()
+            #print(self.nearby_locations + "TOTAL NEARBY LOCATIONS LIST")
+            #for location in self.nearby_locations:
+                #print(location.text + "NEARBY LOCATIONS")
 
         except:
             pass
             
-        try:
+        try: # SCRAPE CAR
+            carList = []
             self.cars = self.driver.find_elements(By.CLASS_NAME, "car ng-binding") # PRINTS TYPE OF CAR FOR EACH PERSON
             for car in self.cars:
-                print(car)
-            
+                carList.append(car)
+            self.cars = ', '.join(carList)
         except:
             pass
             
-        try:
-            self.all_stations.append({"Name": self.name, "Address": self.address, "Rating": self.rating, "Wattage": self.wattage, "Hours": self.hours, "Checkins": self.checkins})
+        try: # PUT ALL TOGETHER
+            self.all_stations.append({"Name": self.name, "Address": self.address, "Rating": self.rating, "Wattage": self.wattage, "Hours": self.hours, "Checkins": self.checkins, "Comments": self.finalComments, "Car": self.cars})
         except:
             pass
         
@@ -115,6 +130,7 @@ class Scraper:
             time.sleep(3)  # Allow time for the page to load!!
 
             self.plugshare_login()
+
             self.data_scrape()
 
             time.sleep(1)
@@ -131,7 +147,8 @@ s = Scraper()
 
 start = time.time()
 
-caller = s.scrape_plugshare_locations(130987,140000)
+caller = s.scrape_plugshare_locations(196603,196605)
+#caller.to_pickle("plugshare.pkl")
 caller.to_csv('Plugshare.csv', index = False)
 print(caller)
 
