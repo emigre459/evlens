@@ -5,10 +5,14 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+#currentCount = 0
+#currentCounter2 = 1
 
 class Scraper:
 
     def __init__(self):
+        self.currentCount = 0
+        self.currentCounter2 = 1
         self.chrome_options = Options()
         self.chrome_options.add_argument("--disable-infobars")
         self.chrome_options.add_argument("--disable-extensions")
@@ -113,6 +117,9 @@ class Scraper:
             pass
         
     def scrape_plugshare_locations(self, start_location, end_location):
+        if self.currentCounter2 % 100 == 0:
+            self.currentCount += 1
+
         self.locationlist = []
         self.driver = webdriver.Chrome(options=self.chrome_options) # Open connection!
         self.all_stations = []
@@ -147,9 +154,12 @@ s = Scraper()
 
 start = time.time()
 
-caller = s.scrape_plugshare_locations(196603,196605)
+caller = s.scrape_plugshare_locations(100000,200000)
 #caller.to_pickle("plugshare.pkl")
-caller.to_csv('Plugshare.csv', index = False)
+caller.to_csv('PlugshareScrape.csv', index = False)
+caller.to_parquet('PlugshareScrape.parquet')
+caller.to_parquet(f'Plugshare{s.currentCount}.parquet')
+caller.to_csv(f'Plugshare{s.currentCount}.csv', index = False)
 print(caller)
 
 end = time.time()
