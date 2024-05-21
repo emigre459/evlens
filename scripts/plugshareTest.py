@@ -122,6 +122,10 @@ class Scraper:
 
         self.locationlist = []
         self.driver = webdriver.Chrome(options=self.chrome_options) # Open connection!
+        time.sleep(15)
+        print(self.driver.get_cookies())
+        self.driver.add_cookie({'domain': ''})
+
         self.all_stations = []
 
         for location_id in range(start_location, end_location):
