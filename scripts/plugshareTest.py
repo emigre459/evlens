@@ -146,26 +146,25 @@ class Scraper:
 
             time.sleep(1)
 
-
-
         self.driver.quit()
         df = pd.DataFrame(self.all_stations)
         return df 
     
-#RUN THE FUNCTION!
-s = Scraper()
+if __name__ == '__main__':
+    #RUN THE FUNCTION!
+    s = Scraper()
 
 
-start = time.time()
+    start = time.time()
 
-caller = s.scrape_plugshare_locations(100000,200000)
-#caller.to_pickle("plugshare.pkl")
-caller.to_csv('PlugshareScrape.csv', index = False)
-caller.to_parquet('PlugshareScrape.parquet')
-caller.to_parquet(f'Plugshare{s.currentCount}.parquet')
-caller.to_csv(f'Plugshare{s.currentCount}.csv', index = False)
-print(caller)
+    caller = s.scrape_plugshare_locations(100000,200000)
+    #caller.to_pickle("plugshare.pkl")
+    caller.to_csv('PlugshareScrape.csv', index = False)
+    caller.to_parquet('PlugshareScrape.parquet')
+    caller.to_parquet(f'Plugshare{s.currentCount}.parquet')
+    caller.to_csv(f'Plugshare{s.currentCount}.csv', index = False)
+    print(caller)
 
-end = time.time()
+    end = time.time()
 
-print('\n', end - start, "seconds")
+    print('\n', end - start, "seconds")
