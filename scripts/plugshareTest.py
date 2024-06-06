@@ -8,6 +8,8 @@ from selenium.webdriver.support import expected_conditions as EC
 #currentCount = 0
 #currentCounter2 = 1
 
+
+
 class Scraper:
 
     def __init__(self):
@@ -17,6 +19,7 @@ class Scraper:
         self.chrome_options.add_argument("--disable-infobars")
         self.chrome_options.add_argument("--disable-extensions")
         self.chrome_options.add_argument("--disable-notifications")
+        self.chrome_options.add_argument("--disable-cookies")
         self.prefs = {"profile.default_content_setting_values.geolocation":2} #TURN OFF LOCATION!!! (NOT NECESSARY BUT LESS TIME NEEDED)
         self.chrome_options.add_experimental_option("prefs", self.prefs)
         #chrome_options.add_experimental_option("detach", True)
@@ -123,8 +126,8 @@ class Scraper:
         self.locationlist = []
         self.driver = webdriver.Chrome(options=self.chrome_options) # Open connection!
         time.sleep(15)
-        print(self.driver.get_cookies())
-        self.driver.add_cookie({'domain': ''})
+        # print(self.driver.get_cookies())
+        # self.driver.add_cookie({'domain': ''})
 
         self.all_stations = []
 
@@ -140,7 +143,7 @@ class Scraper:
             
             time.sleep(3)  # Allow time for the page to load!!
 
-            self.plugshare_login()
+            # self.plugshare_login()
 
             self.data_scrape()
 
@@ -159,10 +162,10 @@ if __name__ == '__main__':
 
     caller = s.scrape_plugshare_locations(100000,200000)
     #caller.to_pickle("plugshare.pkl")
-    caller.to_csv('PlugshareScrape.csv', index = False)
-    caller.to_parquet('PlugshareScrape.parquet')
-    caller.to_parquet(f'Plugshare{s.currentCount}.parquet')
-    caller.to_csv(f'Plugshare{s.currentCount}.csv', index = False)
+    caller.to_csv('../data/external/plugshare/PlugshareScrape.csv', index = False)
+    caller.to_parquet('../data/external/plugshare/PlugshareScrape.parquet')
+    caller.to_parquet(f'../data/external/plugshare/Plugshare{s.currentCount}.parquet')
+    caller.to_csv(f'../data/external/plugshare/Plugshare{s.currentCount}.csv', index = False)
     print(caller)
 
     end = time.time()
