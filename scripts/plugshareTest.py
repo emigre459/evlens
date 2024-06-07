@@ -1,4 +1,5 @@
 import time
+from tqdm import tqdm
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -16,6 +17,8 @@ class Scraper:
         self.currentCount = 0
         self.currentCounter2 = 1
         self.chrome_options = Options()
+        # self.chrome_options.headless = True
+        self.chrome_options.add_argument('--headless=new')
         self.chrome_options.add_argument("--disable-infobars")
         self.chrome_options.add_argument("--disable-extensions")
         self.chrome_options.add_argument("--disable-notifications")
@@ -39,10 +42,13 @@ class Scraper:
             final_login.click()
                 
             time.sleep(2)
-                #esc_button = driver.find_element(By.XPATH, "//*[@id=\"dialogContent_authenticate\"]/button/md-icon")
-                #esc_button.click()
         except:
             pass
+        
+    def exit_login_dialog(self):
+        esc_button = self.driver.find_element(By.XPATH, "//*[@id=\"dialogContent_authenticate\"]/button/md-icon")
+        esc_button.click()
+    
     
     def data_scrape(self):
         try: ## FIND STATION NAME
@@ -131,7 +137,10 @@ class Scraper:
 
         self.all_stations = []
 
-        for location_id in range(start_location, end_location):
+        for location_id in tqdm(
+            range(start_location, end_location),
+            desc="Parsing stations"
+        ):
             self.locationlist.append(location_id)
 
             try:
@@ -144,14 +153,14 @@ class Scraper:
             time.sleep(3)  # Allow time for the page to load!!
 
             # self.plugshare_login()
-
+            self.exit_login_dialog()
             self.data_scrape()
 
             time.sleep(1)
 
         self.driver.quit()
         df = pd.DataFrame(self.all_stations)
-        return df 
+        return df
     
 if __name__ == '__main__':
     #RUN THE FUNCTION!
@@ -160,12 +169,13 @@ if __name__ == '__main__':
 
     start = time.time()
 
+    #TODO: can I remove one or more of these save calls? Seems duplicative.
     caller = s.scrape_plugshare_locations(100000,200000)
     #caller.to_pickle("plugshare.pkl")
-    caller.to_csv('../data/external/plugshare/PlugshareScrape.csv', index = False)
-    caller.to_parquet('../data/external/plugshare/PlugshareScrape.parquet')
-    caller.to_parquet(f'../data/external/plugshare/Plugshare{s.currentCount}.parquet')
-    caller.to_csv(f'../data/external/plugshare/Plugshare{s.currentCount}.csv', index = False)
+    caller.to_csv('data/external/plugshare/PlugshareScrape.csv', index = False)
+    caller.to_parquet('data/external/plugshare/PlugshareScrape.parquet')
+    caller.to_parquet(f'data/external/plugshare/Plugshare{s.currentCount}.parquet')
+    caller.to_csv(f'data/external/plugshare/Plugshare{s.currentCount}.csv', index = False)
     print(caller)
 
     end = time.time()
