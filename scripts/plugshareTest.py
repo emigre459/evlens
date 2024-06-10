@@ -46,8 +46,34 @@ class Scraper:
             pass
         
     def exit_login_dialog(self):
-        esc_button = self.driver.find_element(By.XPATH, "//*[@id=\"dialogContent_authenticate\"]/button/md-icon")
+        esc_button = self.driver.find_element(
+            By.XPATH,
+            # "//*[@id=\"dialogContent_authenticate\"]/button/md-icon" # old
+            "//*[@id=\"dialogContent_authenticate\"]/button" # from chrome inspect
+        )
         esc_button.click()
+        
+        
+# xpath=//tagname[@Attribute=’Value’]
+
+    def reject_all_cookies_dialog(self):
+        manage_settings_link = self.driver.find_element(
+            By.LINK_TEXT,
+            "Manage Settings"
+        )
+        manage_settings_link.click()
+        
+        reject_all_button = self.driver.find_element(
+            By.XPATH,
+            "//*[@id=\"denyAll\"]/span[1]/div/span"
+        )
+        reject_all_button.click()
+        
+        reject_all_confirm_button = self.driver.find_element(
+            By.XPATH,
+            "//*[@id=\"mat-dialog-0\"]/ng-component/app-theme/div/div/div[2]/button[2]"
+        )
+        reject_all_confirm_button.click()
     
     
     def data_scrape(self):
@@ -143,16 +169,14 @@ class Scraper:
         ):
             self.locationlist.append(location_id)
 
-            try:
-                url = f"https://www.plugshare.com/location/{location_id}" #DESIRED URL
-                self.driver.get(url)
-            except:
-                continue
+            url = f"https://www.plugshare.com/location/{location_id}" #DESIRED URL
+            self.driver.get(url)
 
             
             time.sleep(3)  # Allow time for the page to load!!
 
             # self.plugshare_login()
+            self.reject_all_cookies_dialog()
             self.exit_login_dialog()
             self.data_scrape()
 
