@@ -14,15 +14,19 @@ logger = setup_logger(__name__)
 
 class Scraper:
 
-    def __init__(self):
+    def __init__(
+        self,
+        timeout: int = 3
+    ):
         self.currentCount = 0
         self.currentCounter2 = 1
+        self.timeout = 3
         
         self.chrome_options = Options()
         # self.chrome_options.add_argument('--headless=new')
-        # self.chrome_options.add_argument("--disable-infobars")
-        # self.chrome_options.add_argument("--disable-extensions")
-        # self.chrome_options.add_argument("--disable-notifications")
+        self.chrome_options.add_argument("--disable-infobars")
+        self.chrome_options.add_argument("--disable-extensions")
+        self.chrome_options.add_argument("--disable-notifications")
         # self.chrome_options.add_argument("--disable-cookies")
         
         #TURN OFF LOCATION!!! (NOT NECESSARY BUT LESS TIME NEEDED)
@@ -32,6 +36,7 @@ class Scraper:
         
         # self.driver = webdriver.Chrome(options=self.chrome_options) # Open connection!
         self.driver = webdriver.Chrome()
+        self.wait = WebDriverWait(self.driver, timeout)
 
         self.locationlist = []
         self.all_stations = []
@@ -80,8 +85,14 @@ class Scraper:
     def data_scrape(self):
         logger.info("Starting page scrape...")
         try: ## FIND STATION NAME
-            
-            self.name = self.driver.find_element(By.XPATH, "//*[@id=\"display-name\"]/div/h1").text
+            self.wait.until(EC.visibility_of_element_located((
+                By.XPATH,
+                "//*[@id=\"display-name\"]/div/h1"
+            )))
+            self.name = self.driver.find_element(
+                By.XPATH,
+                "//*[@id=\"display-name\"]/div/h1"
+                ).text
         except:
             logger.error("Station name error", exc_info=True)
             self.name = np.nan
