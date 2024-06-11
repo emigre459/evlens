@@ -6,8 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-#currentCount = 0
-#currentCounter2 = 1
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
 
 
@@ -46,15 +45,26 @@ class Scraper:
             pass
         
     def exit_login_dialog(self):
-        esc_button = self.driver.find_element(
-            By.XPATH,
-            # "//*[@id=\"dialogContent_authenticate\"]/button/md-icon" # old
-            "//*[@id=\"dialogContent_authenticate\"]/button" # from chrome inspect
-        )
-        esc_button.click()
-        
-        
-# xpath=//tagname[@Attribute=’Value’]
+        try:
+            # Wait for the exit button
+            wait = WebDriverWait(self.driver, 10)
+            esc_button = wait.until(EC.visibility_of_element_located((
+                By.XPATH,
+                "//*[@id=\"dialogContent_authenticate\"]/button" # from chrome
+            )))
+            esc_button.click()
+
+            # ... your code to handle the cookie settings page ...
+
+            return True
+
+        except (NoSuchElementException, TimeoutException):
+            print("Login dialog exit button not found.")
+            return False
+
+        except Exception as e:
+            print(f"Unknown error trying to exit login dialog: {e}")
+            return False
 
     def reject_all_cookies_dialog(self):
         manage_settings_link = self.driver.find_element(
