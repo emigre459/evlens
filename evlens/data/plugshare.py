@@ -19,19 +19,25 @@ class Scraper:
         self.currentCounter2 = 1
         
         self.chrome_options = Options()
-        self.chrome_options.add_argument('--headless=new')
-        self.chrome_options.add_argument("--disable-infobars")
-        self.chrome_options.add_argument("--disable-extensions")
-        self.chrome_options.add_argument("--disable-notifications")
-        self.chrome_options.add_argument("--disable-cookies")
+        # self.chrome_options.add_argument('--headless=new')
+        # self.chrome_options.add_argument("--disable-infobars")
+        # self.chrome_options.add_argument("--disable-extensions")
+        # self.chrome_options.add_argument("--disable-notifications")
+        # self.chrome_options.add_argument("--disable-cookies")
         
         #TURN OFF LOCATION!!! (NOT NECESSARY BUT LESS TIME NEEDED)
-        self.prefs = {"profile.default_content_setting_values.geolocation":2} 
-        self.chrome_options.add_experimental_option("prefs", self.prefs)
+        # self.prefs = {"profile.default_content_setting_values.geolocation":2} 
+        # self.chrome_options.add_experimental_option("prefs", self.prefs)
+        
+        
+        # self.driver = webdriver.Chrome(options=self.chrome_options) # Open connection!
+        self.driver = webdriver.Chrome()
 
-
+        self.locationlist = []
+        self.all_stations = []
         
     def exit_login_dialog(self):
+        logger.info("Attempting to exit login dialog...")
         try:
             # Wait for the exit button
             wait = WebDriverWait(self.driver, 10)
@@ -46,6 +52,8 @@ class Scraper:
 
         except Exception as e:
             raise RuntimeError(f"Unknown error trying to exit login dialog: {e}")
+        
+        logger.info("Successfully exited the login dialog!")
 
     #TODO: deprecate this method?
     def reject_all_cookies_dialog(self):
@@ -70,37 +78,44 @@ class Scraper:
     
     #TODO: figure out exact exceptions being seen and catch them less broadly
     def data_scrape(self):
+        logger.info("Starting page scrape...")
         try: ## FIND STATION NAME
+            
             self.name = self.driver.find_element(By.XPATH, "//*[@id=\"display-name\"]/div/h1").text
         except:
             logger.error("Station name error", exc_info=True)
             self.name = np.nan
         
         try: ## FIND STATION ADDRESS
+            
             self.address = self.driver.find_element(By.XPATH, "//*[@id=\"info\"]/div[2]/div[3]/div[2]/a[1]").text
         except:
             logger.error("Station address error", exc_info=True)
             self.address = np.nan
         
         try: ## FIND STATION RATING
+            
             self.rating = self.driver.find_element(By.XPATH, "//*[@id=\"plugscore\"]").text
         except:
             logger.error("Station rating error", exc_info=True)
             self.rating = np.nan
 
         try: ## FIND STATION WATTAGE
+            
             self.wattage = self.driver.find_element(By.XPATH, "//*[@id=\"ports\"]/div[3]").text
         except:
             logger.error("Wattage error", exc_info=True)
             self.wattage = np.nan
             
         try: ## FIND STATION HOURS
+            
             self.hours = self.driver.find_element(By.XPATH, "//*[@id=\"info\"]/div[2]/div[11]/div[2]/div").text
         except:
             logger.error("Station hours error", exc_info=True)
             self.hours = np.nan
 
         try: # FIND CHECKINS 
+            
             self.checkins = self.driver.find_element(By.XPATH, "//*[@id=\"checkins\"]").text
             self.checkins = self.checkins.split(' ')[1].split('\n')[0]
             #checkins = checkins.split('\n')[0]
@@ -108,12 +123,11 @@ class Scraper:
             logger.error("Check-ins error", exc_info=True)
 
         try: # FIND COMMENTS
-           
+            
             self.commentList = []
             self.comments = self.driver.find_elements(By.CLASS_NAME, "details")
             for comment in self.comments:
                 self.commentList.append(comment.text)
-                print(comment.text)
              
             for comment in self.commentList:
                 comment.replace("check_circle", "")
@@ -122,6 +136,7 @@ class Scraper:
             logger.error("Comments error", exc_info=True)
             
         try: # SCRAPE CAR
+            
             carList = []
             self.cars = self.driver.find_elements(By.CLASS_NAME, "car ng-binding") # PRINTS TYPE OF CAR FOR EACH PERSON
             for car in self.cars:
@@ -131,23 +146,18 @@ class Scraper:
             logger.error("Car details error", exc_info=True)
             
         try: # PUT ALL TOGETHER
+            
             self.all_stations.append({"Name": self.name, "Address": self.address, "Rating": self.rating, "Wattage": self.wattage, "Hours": self.hours, "Checkins": self.checkins, "Comments": self.finalComments, "Car": self.cars})
         except:
             logger.error("Data append error", exc_info=True)
+            
+        logger.info("Page scrape complete!")
         
     #TODO: determine if we can reduce sleep time from 15 seconds
     def scrape_plugshare_locations(self, start_location, end_location):
+        logger.info("Beginning scraping!")
         if self.currentCounter2 % 100 == 0:
             self.currentCount += 1
-
-        self.locationlist = []
-        self.driver = webdriver.Chrome(options=self.chrome_options) # Open connection!
-        logger.info("Sleeping for 15 seconds")
-        time.sleep(15)
-        # print(self.driver.get_cookies())
-        # self.driver.add_cookie({'domain': ''})
-
-        self.all_stations = []
 
         for location_id in tqdm(
             range(start_location, end_location+1),
@@ -161,8 +171,10 @@ class Scraper:
             self.exit_login_dialog()
             self.data_scrape()
 
-            time.sleep(1)
+            logger.info("Sleeping for 15 seconds")
+            time.sleep(15)
 
         self.driver.quit()
         df = pd.DataFrame(self.all_stations)
+        logger.info("Scraping complete!")
         return df

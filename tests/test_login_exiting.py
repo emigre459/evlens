@@ -47,7 +47,7 @@ def exit_login(driver, url):
 
 # Example usage
 assert exit_login(DRIVER, URL), "Error exiting loging dialog"
-DRIVER.get(URL)
+# DRIVER.get(URL)
 
 # Refresh the page to see the "Manage Settings" link
 # driver.refresh()
