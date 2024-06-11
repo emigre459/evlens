@@ -1,6 +1,7 @@
 import time
 from tqdm import tqdm
 import pandas as pd
+import numpy as np
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -8,41 +9,30 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
+from evlens.logs import setup_logger
+logger = setup_logger(__name__)
 
+# Electrify America in Springfield, VA mall parking lot
+TEST_LOCATION = 252784
 
 class Scraper:
 
     def __init__(self):
         self.currentCount = 0
         self.currentCounter2 = 1
+        
         self.chrome_options = Options()
-        # self.chrome_options.headless = True
         self.chrome_options.add_argument('--headless=new')
         self.chrome_options.add_argument("--disable-infobars")
         self.chrome_options.add_argument("--disable-extensions")
         self.chrome_options.add_argument("--disable-notifications")
         self.chrome_options.add_argument("--disable-cookies")
-        self.prefs = {"profile.default_content_setting_values.geolocation":2} #TURN OFF LOCATION!!! (NOT NECESSARY BUT LESS TIME NEEDED)
+        
+        #TURN OFF LOCATION!!! (NOT NECESSARY BUT LESS TIME NEEDED)
+        self.prefs = {"profile.default_content_setting_values.geolocation":2} 
         self.chrome_options.add_experimental_option("prefs", self.prefs)
-        #chrome_options.add_experimental_option("detach", True)
 
-    def plugshare_login(self):
-        try:
-            login = self.driver.find_element(By.XPATH, "//*[@id=\"dialogContent_authenticate\"]/div[2]/div[2]/span")
-            login.click()
-                
-            email = self.driver.find_element(By.XPATH, "//*[@id=\"email\"]")
-            email.send_keys("kingdan017@gmail.com")
-                
-            password = self.driver.find_element(By.XPATH, "//*[@id=\"input_259\"]")
-            password.send_keys("PlugShareTemp1")
-                
-            final_login = self.driver.find_element(By.XPATH, "//*[@id=\"auth-form\"]/md-content/div[5]/button")
-            final_login.click()
-                
-            time.sleep(2)
-        except:
-            pass
+
         
     def exit_login_dialog(self):
         try:
@@ -59,13 +49,14 @@ class Scraper:
             return True
 
         except (NoSuchElementException, TimeoutException):
-            print("Login dialog exit button not found.")
+            logger.error("Login dialog exit button not found.")
             return False
 
         except Exception as e:
-            print(f"Unknown error trying to exit login dialog: {e}")
+            logger.error(f"Unknown error trying to exit login dialog: {e}")
             return False
 
+    #TODO: deprecate this method?
     def reject_all_cookies_dialog(self):
         manage_settings_link = self.driver.find_element(
             By.LINK_TEXT,
@@ -90,27 +81,27 @@ class Scraper:
         try: ## FIND STATION NAME
             self.name = self.driver.find_element(By.XPATH, "//*[@id=\"display-name\"]/div/h1").text
         except:
-            self.name = "NA"
+            self.name = np.nan
         
         try: ## FIND STATION ADDRESS
             self.address = self.driver.find_element(By.XPATH, "//*[@id=\"info\"]/div[2]/div[3]/div[2]/a[1]").text
         except:
-            self.address = "NA"
+            self.address = np.nan
         
         try: ## FIND STATION RATING
             self.rating = self.driver.find_element(By.XPATH, "//*[@id=\"plugscore\"]").text
         except:
-            self.rating = "NA"
+            self.rating = np.nan
 
         try: ## FIND STATION WATTAGE
             self.wattage = self.driver.find_element(By.XPATH, "//*[@id=\"ports\"]/div[3]").text
         except:
-            self.wattage = "NA"
+            self.wattage = np.nan
             
         try: ## FIND STATION HOURS
             self.hours = self.driver.find_element(By.XPATH, "//*[@id=\"info\"]/div[2]/div[11]/div[2]/div").text
         except:
-            self.hours = "NA"
+            self.hours = np.nan
 
         try: # FIND CHECKINS 
             self.checkins = self.driver.find_element(By.XPATH, "//*[@id=\"checkins\"]").text
@@ -174,7 +165,7 @@ class Scraper:
         self.all_stations = []
 
         for location_id in tqdm(
-            range(start_location, end_location),
+            range(start_location, end_location+1),
             desc="Parsing stations"
         ):
             self.locationlist.append(location_id)
@@ -204,7 +195,7 @@ if __name__ == '__main__':
     start = time.time()
 
     #TODO: can I remove one or more of these save calls? Seems duplicative.
-    caller = s.scrape_plugshare_locations(100000,200000)
+    caller = s.scrape_plugshare_locations(TEST_LOCATION, TEST_LOCATION)
     #caller.to_pickle("plugshare.pkl")
     caller.to_csv('data/external/plugshare/PlugshareScrape.csv', index = False)
     caller.to_parquet('data/external/plugshare/PlugshareScrape.parquet')
