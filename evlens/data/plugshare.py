@@ -18,8 +18,6 @@ class Scraper:
         self,
         timeout: int = 3
     ):
-        self.currentCount = 0
-        self.currentCounter2 = 1
         self.timeout = 3
         
         self.chrome_options = Options()
@@ -34,8 +32,8 @@ class Scraper:
         # self.prefs = {"profile.default_content_setting_values.geolocation":2} 
         # self.chrome_options.add_experimental_option("prefs", self.prefs)
         
-        self.chrome_options = None
-        assert self.chrome_options is None, "You passed chrome options!"
+        # self.chrome_options = None
+        # assert self.chrome_options is None, "You passed chrome options!"
         self.driver = webdriver.Chrome(options=self.chrome_options)
         self.wait = WebDriverWait(self.driver, timeout)
 
@@ -46,7 +44,7 @@ class Scraper:
         logger.info("Attempting to exit login dialog...")
         try:
             # Wait for the exit button
-            wait = WebDriverWait(self.driver, 10)
+            wait = WebDriverWait(self.driver, self.timeout)
             esc_button = wait.until(EC.visibility_of_element_located((
                 By.XPATH,
                 "//*[@id=\"dialogContent_authenticate\"]/button" # from chrome
@@ -168,8 +166,6 @@ class Scraper:
     #TODO: determine if we can reduce sleep time from 15 seconds
     def scrape_plugshare_locations(self, start_location, end_location):
         logger.info("Beginning scraping!")
-        if self.currentCounter2 % 100 == 0:
-            self.currentCount += 1
 
         for location_id in tqdm(
             range(start_location, end_location+1),
