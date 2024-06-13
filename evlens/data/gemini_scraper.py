@@ -34,15 +34,18 @@ def read_html_and_generate_code(model):
     #    query_llm(query, model)
     
     url = "https://www.plugshare.com/location/10000"
-    # r = requests.get(url)
+    url = "https://www.plugshare.com/scripts/vendor-2cdcca5031.js"
+    r = requests.get(url)
     
     with open('data/raw/webpage_content.txt') as f:
         doc = f.read()
     # soup = BeautifulSoup(r.text, 'html.parser') # Parse the HTML elements
     # data = soup.text # Get raw data in string format
     # print(data[:10_000])
+    
+    # doc = r.text
     query = f"""
-    You will find in DATA below some html for a webpage. When accessing the webpage with as a human user in Chrome browser, a Manage Settings link for rejecting cookies appears. When running code in python with the selenium package, however, the Manage Settings link never populates. Why is that?
+    You will find in DATA below some javascript for a webpage. Can you describe briefly what this code does?
     
     DATA: {doc}
     """

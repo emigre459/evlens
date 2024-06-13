@@ -23,19 +23,20 @@ class Scraper:
         self.timeout = 3
         
         self.chrome_options = Options()
+        
+        # Removes automation infobar
+        self.chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
         # self.chrome_options.add_argument('--headless=new')
-        self.chrome_options.add_argument("--disable-infobars")
-        self.chrome_options.add_argument("--disable-extensions")
-        self.chrome_options.add_argument("--disable-notifications")
-        # self.chrome_options.add_argument("--disable-cookies")
+        # self.chrome_options.add_argument("--disable-extensions")
+        # self.chrome_options.add_argument("--disable-notifications")
         
         #TURN OFF LOCATION!!! (NOT NECESSARY BUT LESS TIME NEEDED)
         # self.prefs = {"profile.default_content_setting_values.geolocation":2} 
         # self.chrome_options.add_experimental_option("prefs", self.prefs)
         
-        
-        # self.driver = webdriver.Chrome(options=self.chrome_options) # Open connection!
-        self.driver = webdriver.Chrome()
+        self.chrome_options = None
+        assert self.chrome_options is None, "You passed chrome options!"
+        self.driver = webdriver.Chrome(options=self.chrome_options)
         self.wait = WebDriverWait(self.driver, timeout)
 
         self.locationlist = []
