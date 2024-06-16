@@ -14,6 +14,7 @@ URL = f"https://www.plugshare.com/location/{TEST_LOCATION}"
 
 chrome_options = Options()
 chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+chrome_options.add_argument('--headless=new')
 
 DRIVER = webdriver.Chrome(options=chrome_options)
 DRIVER.maximize_window()
