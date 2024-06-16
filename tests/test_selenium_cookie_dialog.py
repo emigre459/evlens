@@ -16,7 +16,7 @@ chrome_options = Options()
 chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
 
 DRIVER = webdriver.Chrome(options=chrome_options)
-
+DRIVER.maximize_window()
 
 
 # Add a cookie to the browser that indicates that the user has not consented to cookies
@@ -56,15 +56,24 @@ def interact_with_cookies(driver, url, reject_cookies: bool = True):
             logger.info("Rejecting cookies...")
             
             logger.info("Selecting 'Manage Settings' link...")
-            manage_settings_link = driver.find_element(By.CSS_SELECTOR, "a[aria-label='Customize your consent preferences.']")
+            manage_settings_link = wait.until(EC.element_to_be_clickable((
+                By.XPATH,
+                "/html/body/app-root/app-theme/div/div/app-notice/app-theme/div/div/app-home/div/div[2]/app-footer/div/div/app-section-links/span/a"
+            )))
             manage_settings_link.click()
             
             logger.info("Clicking 'Reject All' button...")
-            reject_all_button = driver.find_element(By.CSS_SELECTOR, "button[id='denyAll']")
+            reject_all_button = wait.until(EC.element_to_be_clickable((
+                By.XPATH,
+                "//*[@id=\"denyAll\"]"
+            )))
             reject_all_button.click()
             
             logger.info("Confirming rejection...")
-            reject_all_button_confirm = driver.find_element(By.XPATH, "//*[@id=\"mat-dialog-0\"]/ng-component/app-theme/div/div/div[2]/button[2]")
+            reject_all_button_confirm = wait.until(EC.element_to_be_clickable((
+                By.XPATH,
+                "//*[@id=\"mat-dialog-0\"]/ng-component/app-theme/div/div/div[2]/button[2]"
+            )))
             reject_all_button_confirm.click()
             
         else:
@@ -86,19 +95,17 @@ def interact_with_cookies(driver, url, reject_cookies: bool = True):
         raise e1
 
     except Exception as e2:
-        logger.error(f"Unknown error rejecting cookies: {e}")
+        logger.error(f"Unknown error rejecting cookies: {e2}")
 
 if __name__ == '__main__':
     # Example usage
     logger.info("Starting cookie dialog test...")
-    assert interact_with_cookies(DRIVER, URL, reject_cookies=False), "Error rejecting cookies."
+    assert interact_with_cookies(DRIVER, URL, reject_cookies=True), "Error rejecting cookies."
 
     # Refresh the page to see the "Manage Settings" link
     # driver.refresh()
 
     logger.info("SUCCESS!")
-    # DRIVER.switch_to.frame(iframe)
-
 
     # Ultimately flow using this code should be:
     # 1. Check if banner is present via try-except on timeout
