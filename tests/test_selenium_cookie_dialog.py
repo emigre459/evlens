@@ -49,16 +49,23 @@ def interact_with_cookies(driver, url, reject_cookies: bool = True):
         # Select default content so we can switch to cookie iframe
         # Adapted from https://stackoverflow.com/a/21476147
         # Pull out of main page frame so we can select a different frame (cookies)
-        # driver.switch_to.default_content()
+        logger.info("Switching to cookie dialog iframe...")
         driver.switch_to.frame(iframe)
         
         if reject_cookies:
             logger.info("Rejecting cookies...")
-            manage_settings_link = driver.find_element(By.LINK_TEXT, "Manage Settings")
             
-            
-            # Click the link
+            logger.info("Selecting 'Manage Settings' link...")
+            manage_settings_link = driver.find_element(By.CSS_SELECTOR, "a[aria-label='Customize your consent preferences.']")
             manage_settings_link.click()
+            
+            logger.info("Clicking 'Reject All' button...")
+            reject_all_button = driver.find_element(By.CSS_SELECTOR, "button[id='denyAll']")
+            reject_all_button.click()
+            
+            logger.info("Confirming rejection...")
+            reject_all_button_confirm = driver.find_element(By.XPATH, "//*[@id=\"mat-dialog-0\"]/ng-component/app-theme/div/div/div[2]/button[2]")
+            reject_all_button_confirm.click()
             
         else:
             logger.info("Accepting cookies...")
@@ -68,6 +75,7 @@ def interact_with_cookies(driver, url, reject_cookies: bool = True):
         
         
         # Switch back to main frame
+        logger.info("Switching back to main page content...")
         driver.switch_to.default_content()
         
 
