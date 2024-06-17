@@ -8,12 +8,19 @@ from selenium.webdriver.chrome.options import Options
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
 
-URL = "https://www.plugshare.com/location/10000"
+TEST_LOCATION = 252784
+URL = f"https://www.plugshare.com/location/{TEST_LOCATION}"
 
 chrome_options = Options()
 # Removes automation infobar
 chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-chrome_options.add_argument("--incognito")
+
+# Don't get benefits of incognito mode...
+chrome_options.add_argument('--headless=new')
+
+# Disables geolocation BUT enables cookie dialog...
+prefs = {"profile.default_content_setting_values.geolocation":2}
+chrome_options.add_experimental_option("prefs", prefs)
 DRIVER = webdriver.Chrome(options=chrome_options)
 
 # Add a cookie to the browser that indicates that the user has not consented to cookies
@@ -34,7 +41,7 @@ def exit_login(driver, url):
 
     try:
         # Wait for the exit button
-        wait = WebDriverWait(driver, 3)
+        wait = WebDriverWait(driver, 1)
         esc_button = wait.until(EC.visibility_of_element_located((
             By.XPATH,
             # "//*[@id=\"dialogContent_authenticate\"]/button/md-icon" # old
@@ -47,11 +54,11 @@ def exit_login(driver, url):
         return True
 
     except (NoSuchElementException, TimeoutException):
-        print("Login dialog exit button not found.")
+        logger.error("Login dialog exit button not found.")
         return False
 
     except Exception as e:
-        print(f"Unknown error trying to exit login dialog: {e}")
+        logger.error(f"Unknown error trying to exit login dialog: {e}")
         return False
 
 # Example usage

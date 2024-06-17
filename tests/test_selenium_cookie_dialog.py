@@ -16,6 +16,12 @@ chrome_options = Options()
 chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
 chrome_options.add_argument('--headless=new')
 
+# Disables geolocation BUT enables cookie dialog...
+prefs = {"profile.default_content_setting_values.geolocation":2}
+chrome_options.add_experimental_option("prefs", prefs)
+chrome_options.add_argument("--disable-notifications")
+chrome_options.add_argument("--disable-extensions")
+
 DRIVER = webdriver.Chrome(options=chrome_options)
 DRIVER.maximize_window()
 
