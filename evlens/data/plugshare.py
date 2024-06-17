@@ -63,14 +63,13 @@ class Scraper:
                 "//*[@id=\"dialogContent_authenticate\"]/button"
             )))
             esc_button.click()
+            logger.info("Successfully exited the login dialog!")
 
         except (NoSuchElementException, TimeoutException):
-            raise RuntimeError("Login dialog exit button not found.")
+            logger.error("Login dialog exit button not found.")
 
         except Exception as e:
             raise RuntimeError(f"Unknown error trying to exit login dialog: {e}")
-        
-        logger.info("Successfully exited the login dialog!")
 
     #TODO: make logger.info into logger.debug everywhere?
     def reject_all_cookies_dialog(self):
@@ -233,6 +232,8 @@ class Scraper:
             time.sleep(wait_between_loads)
 
         self.driver.quit()
+        
+        #TODO: add station location integers as column
         df = pd.DataFrame(self.all_stations)
         df.to_pickle(self.save_path + f"all_data.pkl")
         logger.info("Scraping complete!")
