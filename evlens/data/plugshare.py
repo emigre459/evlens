@@ -20,11 +20,13 @@ class Scraper:
         save_filepath: str,
         save_every: int = 100,
         timeout: int = 3,
+        page_load_pause: int = 1,
         headless: bool = True
     ):
         self.timeout = timeout
         self.save_path = save_filepath
         self.save_every = save_every
+        self.page_load_pause = page_load_pause
         
         if not os.path.exists(self.save_path):
             logger.warning("Save filpath does not exist, creating it...")
@@ -111,7 +113,6 @@ class Scraper:
         self.driver.switch_to.default_content()
     
     
-    #TODO: figure out exact exceptions being seen and catch them less broadly
     #TODO: clean up and try to more elegantly extract things en masse
     #TODO: use fewer attributes for data maintenance
     def scrape_location(self):
@@ -125,35 +126,35 @@ class Scraper:
                 By.XPATH,
                 "//*[@id=\"display-name\"]/div/h1"
                 ).text
-        except:
-            logger.error("Station name error", exc_info=True)
-            self.name = np.nan
+        except (NoSuchElementException, TimeoutException):
+            logger.error("Station name error, skipping...")
+            return
         
         try: ## FIND STATION ADDRESS
             
             self.address = self.driver.find_element(By.XPATH, "//*[@id=\"info\"]/div[2]/div[3]/div[2]/a[1]").text
-        except:
+        except (NoSuchElementException, TimeoutException):
             logger.error("Station address error", exc_info=True)
             self.address = np.nan
         
         try: ## FIND STATION RATING
             
             self.rating = self.driver.find_element(By.XPATH, "//*[@id=\"plugscore\"]").text
-        except:
+        except (NoSuchElementException, TimeoutException):
             logger.error("Station rating error", exc_info=True)
             self.rating = np.nan
 
         try: ## FIND STATION WATTAGE
             
             self.wattage = self.driver.find_element(By.XPATH, "//*[@id=\"ports\"]/div[3]").text
-        except:
+        except (NoSuchElementException, TimeoutException):
             logger.error("Wattage error", exc_info=True)
             self.wattage = np.nan
             
         try: ## FIND STATION HOURS
             
             self.hours = self.driver.find_element(By.XPATH, "//*[@id=\"info\"]/div[2]/div[11]/div[2]/div").text
-        except:
+        except (NoSuchElementException, TimeoutException):
             logger.error("Station hours error", exc_info=True)
             self.hours = np.nan
 
@@ -162,9 +163,11 @@ class Scraper:
             self.checkins = self.driver.find_element(By.XPATH, "//*[@id=\"checkins\"]").text
             self.checkins = self.checkins.split(' ')[1].split('\n')[0]
             #checkins = checkins.split('\n')[0]
-        except:
+        except (NoSuchElementException, TimeoutException):
             logger.error("Check-ins error", exc_info=True)
 
+        #TODO: try to pull more comments, might need clicking to View More
+        #TODO: better parse the comments, come out as str but need list
         try: # FIND COMMENTS
             
             self.commentList = []
@@ -175,7 +178,7 @@ class Scraper:
             for comment in self.commentList:
                 comment.replace("check_circle", "")
             self.finalComments = ', '.join(self.commentList)
-        except:
+        except (NoSuchElementException, TimeoutException):
             logger.error("Comments error", exc_info=True)
             
         try: # SCRAPE CAR
@@ -185,7 +188,7 @@ class Scraper:
             for car in self.cars:
                 carList.append(car)
             self.cars = ', '.join(carList)
-        except:
+        except (NoSuchElementException, TimeoutException):
             logger.error("Car details error", exc_info=True)
             
         try: # PUT ALL TOGETHER
@@ -227,9 +230,8 @@ class Scraper:
                 pd.DataFrame(self.all_stations).to_pickle(path)
 
             #TODO: tune between page switches
-            wait_between_loads = 5
-            logger.info(f"Sleeping for {wait_between_loads} seconds")
-            time.sleep(wait_between_loads)
+            logger.info(f"Sleeping for {self.page_load_pause} seconds")
+            time.sleep(self.page_load_pause)
 
         self.driver.quit()
         
