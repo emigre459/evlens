@@ -62,7 +62,7 @@ endif
 
 ## Set up python interpreter environment
 env_create:
-	@echo "Creating new environment `$(PROJECT_NAME)`"
+	@echo "Creating new environment"
 	@poetry config virtualenvs.in-project true
 	@rm -f poetry.lock
 	@poetry install
@@ -70,10 +70,11 @@ env_create:
 
 ## Strip the venv and start from a blank slate
 env_remove:
-	@echo "Removing `$(PROJECT_NAME)` environment and emptying poetry cache"
+	@echo "Removing environment and emptying poetry cache"
 	@poetry cache clear --all -n pypi
 	@poetry cache clear --all -n PyPI
 	@rm -f poetry.lock
+	@rm -rf $(poetry env list --full-path)
 	@rm -rf .venv
 
 ## Re-create environment from clean slate

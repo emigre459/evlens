@@ -9,8 +9,7 @@ TEST_LOCATION = 252784
 
    
 if __name__ == '__main__':
-    s = Scraper()
-    start = time.time()
+    s = Scraper(timeout=3, headless=True)
 
     #TODO: can I remove one or more of these save calls? Seems duplicative.
     caller = s.scrape_plugshare_locations(TEST_LOCATION, TEST_LOCATION)
@@ -20,7 +19,3 @@ if __name__ == '__main__':
     caller.to_parquet(f'data/external/plugshare/Plugshare{s.currentCount}.parquet')
     caller.to_csv(f'data/external/plugshare/Plugshare{s.currentCount}.csv', index = False)
     print(caller)
-
-    end = time.time()
-
-    print('\n', end - start, "seconds")

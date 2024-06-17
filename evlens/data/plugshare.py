@@ -2,6 +2,7 @@ import time
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
+import os
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -16,10 +17,18 @@ class Scraper:
 
     def __init__(
         self,
+        save_filepath: str,
+        save_every: int = 100,
         timeout: int = 3,
         headless: bool = True
     ):
         self.timeout = timeout
+        self.save_path = save_filepath
+        self.save_every = save_every
+        
+        if not os.path.exists(self.save_path):
+            logger.warning("Save filpath does not exist, creating it...")
+            os.makedirs(self.save_path)
         
         self.chrome_options = Options()
         
@@ -188,14 +197,14 @@ class Scraper:
             
         logger.info("Page scrape complete!")
         
-    #TODO: determine if we can reduce sleep time from 15 seconds
+    #TODO: add in saving to disk at X pages (pickle for now)
     def run(self, start_location, end_location):
         logger.info("Beginning scraping!")
 
-        for location_id in tqdm(
+        for i, location_id in enumerate(tqdm(
             range(start_location, end_location+1),
             desc="Parsing stations"
-        ):
+        )):
             self.locationlist.append(location_id)
             url = f"https://www.plugshare.com/location/{location_id}"
             self.driver.get(url)
@@ -212,6 +221,11 @@ class Scraper:
             # TODO: try-except here
             self.exit_login_dialog()
             self.scrape_location()
+            
+            if i+1 % self.save_every == 0:
+                logger.info(f"Saving checkpoint at location {i}")
+                path = self.save_path + f"{i}.pkl"
+                pd.DataFrame(self.all_stations).to_pickle(path)
 
             #TODO: tune between page switches
             wait_between_loads = 5
@@ -220,5 +234,6 @@ class Scraper:
 
         self.driver.quit()
         df = pd.DataFrame(self.all_stations)
+        df.to_pickle(self.save_path + f"all_data.pkl")
         logger.info("Scraping complete!")
         return df
