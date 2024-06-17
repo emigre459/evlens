@@ -16,27 +16,32 @@ class Scraper:
 
     def __init__(
         self,
-        timeout: int = 3
+        timeout: int = 3,
+        headless: bool = True
     ):
-        self.timeout = 3
+        self.timeout = timeout
         
         self.chrome_options = Options()
         
         # Removes automation infobar
         self.chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        # self.chrome_options.add_argument('--headless=new')
-        # self.chrome_options.add_argument("--disable-extensions")
-        # self.chrome_options.add_argument("--disable-notifications")
         
-        #TURN OFF LOCATION!!! (NOT NECESSARY BUT LESS TIME NEEDED)
-        # self.prefs = {"profile.default_content_setting_values.geolocation":2} 
-        # self.chrome_options.add_experimental_option("prefs", self.prefs)
+        # Run without window open
+        if headless:
+            self.chrome_options.add_argument('--headless=new')
         
-        # self.chrome_options = None
-        # assert self.chrome_options is None, "You passed chrome options!"
+        # Get rid of kruft that will slow us down
+        self.chrome_options.add_argument("--disable-extensions")
+        self.chrome_options.add_argument("--disable-notifications")
+        
+        # Turn off geolocation to speed things up
+        self.prefs = {"profile.default_content_setting_values.geolocation":2} 
+        self.chrome_options.add_experimental_option("prefs", self.prefs)
+        
         self.driver = webdriver.Chrome(options=self.chrome_options)
-        self.wait = WebDriverWait(self.driver, timeout)
-
+        self.wait = WebDriverWait(self.driver, self.timeout)
+        
+        #TODO: get rid of these through refactor
         self.locationlist = []
         self.all_stations = []
         
@@ -44,10 +49,9 @@ class Scraper:
         logger.info("Attempting to exit login dialog...")
         try:
             # Wait for the exit button
-            wait = WebDriverWait(self.driver, self.timeout)
-            esc_button = wait.until(EC.visibility_of_element_located((
+            esc_button = self.wait.until(EC.visibility_of_element_located((
                 By.XPATH,
-                "//*[@id=\"dialogContent_authenticate\"]/button" # from chrome
+                "//*[@id=\"dialogContent_authenticate\"]/button"
             )))
             esc_button.click()
 
@@ -59,29 +63,50 @@ class Scraper:
         
         logger.info("Successfully exited the login dialog!")
 
-    #TODO: deprecate this method?
+    #TODO: make logger.info into logger.debug everywhere?
     def reject_all_cookies_dialog(self):
-        manage_settings_link = self.driver.find_element(
-            By.LINK_TEXT,
-            "Manage Settings"
-        )
+        # Wait for the cookie dialog to appear
+        iframe = self.wait.until(EC.visibility_of_element_located((
+            By.ID,
+            "global-consent-notice"
+        )))        
+        logger.info("Found the cookie banner!")
+        
+        # Adapted from https://stackoverflow.com/a/21476147
+        # Pull out of main page frame so we can select a different frame (cookies)
+        logger.info("Switching to cookie dialog iframe...")
+        self.driver.switch_to.frame(iframe)
+        
+        logger.info("Selecting 'Manage Settings' link...")
+        manage_settings_link = self.wait.until(EC.element_to_be_clickable((
+            By.XPATH,
+            "/html/body/app-root/app-theme/div/div/app-notice/app-theme/div/div/app-home/div/div[2]/app-footer/div/div/app-section-links/span/a"
+        )))
         manage_settings_link.click()
         
-        reject_all_button = self.driver.find_element(
+        logger.info("Clicking 'Reject All' button...")
+        reject_all_button = self.wait.until(EC.element_to_be_clickable((
             By.XPATH,
-            "//*[@id=\"denyAll\"]/span[1]/div/span"
-        )
+            "//*[@id=\"denyAll\"]"
+        )))
         reject_all_button.click()
         
-        reject_all_confirm_button = self.driver.find_element(
+        logger.info("Confirming rejection...")
+        reject_all_button_confirm = self.wait.until(EC.element_to_be_clickable((
             By.XPATH,
             "//*[@id=\"mat-dialog-0\"]/ng-component/app-theme/div/div/div[2]/button[2]"
-        )
-        reject_all_confirm_button.click()
+        )))
+        reject_all_button_confirm.click()
+        
+        # Switch back to main frame
+        logger.info("Switching back to main page content...")
+        self.driver.switch_to.default_content()
     
     
     #TODO: figure out exact exceptions being seen and catch them less broadly
-    def data_scrape(self):
+    #TODO: clean up and try to more elegantly extract things en masse
+    #TODO: use fewer attributes for data maintenance
+    def scrape_location(self):
         logger.info("Starting page scrape...")
         try: ## FIND STATION NAME
             self.wait.until(EC.visibility_of_element_located((
@@ -164,7 +189,7 @@ class Scraper:
         logger.info("Page scrape complete!")
         
     #TODO: determine if we can reduce sleep time from 15 seconds
-    def scrape_plugshare_locations(self, start_location, end_location):
+    def run(self, start_location, end_location):
         logger.info("Beginning scraping!")
 
         for location_id in tqdm(
@@ -174,13 +199,24 @@ class Scraper:
             self.locationlist.append(location_id)
             url = f"https://www.plugshare.com/location/{location_id}"
             self.driver.get(url)
+            
+            # Have to maximize to see all links...weirdly
+            self.driver.maximize_window()
 
-            # self.reject_all_cookies_dialog()
+            try:
+                self.reject_all_cookies_dialog()
+                
+            except (NoSuchElementException, TimeoutException) as e_cookies:
+                logger.error("Cookie banner or 'Manage Settings' link not found. Assuming cookies are not rejected.")
+                
+            # TODO: try-except here
             self.exit_login_dialog()
-            self.data_scrape()
+            self.scrape_location()
 
-            logger.info("Sleeping for 15 seconds")
-            time.sleep(15)
+            #TODO: tune between page switches
+            wait_between_loads = 5
+            logger.info(f"Sleeping for {wait_between_loads} seconds")
+            time.sleep(wait_between_loads)
 
         self.driver.quit()
         df = pd.DataFrame(self.all_stations)

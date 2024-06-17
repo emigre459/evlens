@@ -53,7 +53,6 @@ def interact_with_cookies(driver, url, reject_cookies: bool = True):
         
         logger.info("Found the banner!")
         
-        # Select default content so we can switch to cookie iframe
         # Adapted from https://stackoverflow.com/a/21476147
         # Pull out of main page frame so we can select a different frame (cookies)
         logger.info("Switching to cookie dialog iframe...")
