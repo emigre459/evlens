@@ -38,27 +38,30 @@ class CheckIn:
         output = dict()
         
         # Details part
-        details_element = self.element.find_element(By.CLASS_NAME, "details")
-        details_children = details_element.find_elements(By.XPATH, "./child::*")
-        for d in details_children:
-            if d.get_attribute("class") == 'date ng-binding':
-                output['date'] = pd.to_datetime(d.text)
-            elif d.get_attribute("class") == 'car ng-binding':
-                output['car'] = d.text
-            elif d.get_attribute("class") == 'additional':
-                self.additional_children = d.find_elements(By.XPATH, "./child::*")
-        
-        # "Additional" part
-        print([d.get_attribute("class") for d in self.additional_children])
-        for d in self.additional_children:
-            if d.get_attribute("class") == 'problem ng-scope':
-                output['problem'] = d.text
-            elif d.get_attribute("class") == 'connector ng-binding':
-                output['connector_type'] = d.text
-            elif d.get_attribute("class") == 'kilowatts ng-scope':
-                output['charge_power_kilowatts'] = d.text
-            elif d.get_attribute("class") == 'comment ng-binding':
-                output['comment'] = d.text
+        try:
+            details_element = self.element.find_element(By.CLASS_NAME, "details")
+            details_children = details_element.find_elements(By.XPATH, "./child::*")
+            for d in details_children:
+                if d.get_attribute("class") == 'date ng-binding':
+                    output['date'] = pd.to_datetime(d.text)
+                elif d.get_attribute("class") == 'car ng-binding':
+                    output['car'] = d.text
+                elif d.get_attribute("class") == 'additional':
+                    self.additional_children = d.find_elements(By.XPATH, "./child::*")
+            
+            # "Additional" part
+            for d in self.additional_children:
+                if d.get_attribute("class") == 'problem ng-scope':
+                    output['problem'] = d.text
+                elif d.get_attribute("class") == 'connector ng-binding':
+                    output['connector_type'] = d.text
+                elif d.get_attribute("class") == 'kilowatts ng-scope':
+                    output['charge_power_kilowatts'] = d.text
+                elif d.get_attribute("class") == 'comment ng-binding':
+                    output['comment'] = d.text
+                    
+        except NoSuchElementException:
+            logger.error("Checkin entry blank/not found")
                 
         
         # Check what columns we're missing and fill with null
@@ -75,7 +78,8 @@ class CheckIn:
                 output[c] = np.nan
         
         
-        return pd.DataFrame(output, index=[0])
+        # Drop anything that is all-nulls when ignoring location_id
+        return pd.DataFrame(output, index=[0]).dropna(how='all')
 
 
 class Scraper:
@@ -262,8 +266,10 @@ class Scraper:
                 "//*[@id=\"dialogContent_reviews\"]/div/div"
             ).find_elements(By.XPATH, "./child::*")
             
+            self.detailed_checkins = detailed_checkins
+            
             checkin_dfs = []
-            for checkin in detailed_checkins:
+            for checkin in tqdm(detailed_checkins, desc="Parsing checkins for location"):
                 c = CheckIn(checkin)
                 checkin_dfs.append(c.parse())
                 
