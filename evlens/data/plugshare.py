@@ -61,7 +61,7 @@ class CheckIn:
                     output['comment'] = d.text
                     
         except NoSuchElementException:
-            logger.error("Checkin entry blank/not found")
+            logger.debug("Checkin entry blank/not found")
                 
         
         # Check what columns we're missing and fill with null
@@ -137,6 +137,7 @@ class Scraper:
 
         except (NoSuchElementException, TimeoutException):
             logger.error("Login dialog exit button not found.")
+            self.driver.save_screenshot("selenium_login_not_found.png")
 
         except Exception as e:
             raise RuntimeError(f"Unknown error trying to exit login dialog: {e}")
@@ -271,7 +272,9 @@ class Scraper:
             checkin_dfs = []
             for checkin in tqdm(detailed_checkins, desc="Parsing checkins for location"):
                 c = CheckIn(checkin)
-                checkin_dfs.append(c.parse())
+                out = c.parse()
+                if not out.empty:
+                    checkin_dfs.append(out)
                 
             df_checkins = pd.concat(checkin_dfs, ignore_index=True)
             df_checkins['location_id'] = location_id
