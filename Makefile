@@ -1,5 +1,7 @@
 .PHONY: clean data lint requirements sync_data_to_s3 sync_data_from_s3
 
+# SHELL = /usr/bin/env bash
+
 #################################################################################
 # GLOBALS                                                                       #
 #################################################################################
@@ -9,7 +11,7 @@
 PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 BUCKET = [OPTIONAL] your-bucket-for-syncing-data (do not include 's3://')
 PROFILE = default
-PROJECT_NAME = evlens
+PROJECT_NAME := evlens
 PYTHON_INTERPRETER = python3
 
 ifeq (,$(shell which conda))
@@ -59,8 +61,24 @@ else
 endif
 
 ## Set up python interpreter environment
-create_environment:
+env_create:
+	@echo "Creating new environment"
+	@poetry config virtualenvs.in-project true
+	@rm -f poetry.lock
 	@poetry install
+
+
+## Strip the venv and start from a blank slate
+env_remove:
+	@echo "Removing environment and emptying poetry cache"
+	@poetry cache clear --all -n pypi
+	@poetry cache clear --all -n PyPI
+	@rm -f poetry.lock
+	@rm -rf $(poetry env list --full-path)
+	@rm -rf .venv
+
+## Re-create environment from clean slate
+env_rebuild: env_remove env_create
 
 ## Test python environment is setup correctly
 test_environment:
