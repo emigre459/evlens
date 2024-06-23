@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import os
 import re
-from typing import Tuple
+from typing import Tuple, Set, Union
 
 from joblib import dump as joblib_dump
 
@@ -355,6 +355,7 @@ class MainMapScraper:
 
             #TODO: tune between page switches
             logger.info(f"Sleeping for {self.page_load_pause} seconds")
+            logger.warning("NEED TO TUNE THIS SLEEP TIME")
             time.sleep(self.page_load_pause)
 
         self.driver.quit()
@@ -372,4 +373,4 @@ class MainMapScraper:
     
 class LocationIDScraper(MainMapScraper):
     
-    raise NotImplementedError
+    pass

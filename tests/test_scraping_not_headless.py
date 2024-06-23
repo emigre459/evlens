@@ -14,7 +14,7 @@ TODAY_STRING = date.today().strftime("%m-%d-%Y")
 
 if __name__ == '__main__':
     s = MainMapScraper(
-        f"../data/external/plugshare/{TODAY_STRING}/",
+        f"data/external/plugshare/{TODAY_STRING}/",
         timeout=3,
         headless=False
     )
