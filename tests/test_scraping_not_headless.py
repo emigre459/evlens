@@ -18,7 +18,7 @@ if __name__ == '__main__':
         timeout=3,
         headless=False
     )
-    df_locations, df_checkins = s.run(TEST_LOCATION, TEST_LOCATION)
+    df_locations, df_checkins = s.run(start_location=TEST_LOCATION, end_location=TEST_LOCATION)
     
     assert not df_locations.empty, "Location metadata empty"
     assert not df_checkins.empty, "No checkins found"

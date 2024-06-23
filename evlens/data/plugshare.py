@@ -164,42 +164,47 @@ class MainMapScraper:
 
     #TODO: make logger.info into logger.debug everywhere?
     def reject_all_cookies_dialog(self):
-        # Wait for the cookie dialog to appear
-        iframe = self.wait.until(EC.visibility_of_element_located((
-            By.ID,
-            "global-consent-notice"
-        )))        
-        logger.info("Found the cookie banner!")
+        try:
+            # Wait for the cookie dialog to appear
+            iframe = self.wait.until(EC.visibility_of_element_located((
+                By.ID,
+                "global-consent-notice"
+            )))        
+            logger.info("Found the cookie banner!")
+            
+            # Adapted from https://stackoverflow.com/a/21476147
+            # Pull out of main page frame so we can select a different frame (cookies)
+            logger.info("Switching to cookie dialog iframe...")
+            self.driver.switch_to.frame(iframe)
+            
+            logger.info("Selecting 'Manage Settings' link...")
+            manage_settings_link = self.wait.until(EC.element_to_be_clickable((
+                By.XPATH,
+                "/html/body/app-root/app-theme/div/div/app-notice/app-theme/div/div/app-home/div/div[2]/app-footer/div/div/app-section-links/span/a"
+            )))
+            manage_settings_link.click()
+            
+            logger.info("Clicking 'Reject All' button...")
+            reject_all_button = self.wait.until(EC.element_to_be_clickable((
+                By.XPATH,
+                "//*[@id=\"denyAll\"]"
+            )))
+            reject_all_button.click()
+            
+            logger.info("Confirming rejection...")
+            reject_all_button_confirm = self.wait.until(EC.element_to_be_clickable((
+                By.XPATH,
+                "//*[@id=\"mat-dialog-0\"]/ng-component/app-theme/div/div/div[2]/button[2]"
+            )))
+            reject_all_button_confirm.click()
+            
+            # Switch back to main frame
+            logger.info("Switching back to main page content...")
+            self.driver.switch_to.default_content()
         
-        # Adapted from https://stackoverflow.com/a/21476147
-        # Pull out of main page frame so we can select a different frame (cookies)
-        logger.info("Switching to cookie dialog iframe...")
-        self.driver.switch_to.frame(iframe)
-        
-        logger.info("Selecting 'Manage Settings' link...")
-        manage_settings_link = self.wait.until(EC.element_to_be_clickable((
-            By.XPATH,
-            "/html/body/app-root/app-theme/div/div/app-notice/app-theme/div/div/app-home/div/div[2]/app-footer/div/div/app-section-links/span/a"
-        )))
-        manage_settings_link.click()
-        
-        logger.info("Clicking 'Reject All' button...")
-        reject_all_button = self.wait.until(EC.element_to_be_clickable((
-            By.XPATH,
-            "//*[@id=\"denyAll\"]"
-        )))
-        reject_all_button.click()
-        
-        logger.info("Confirming rejection...")
-        reject_all_button_confirm = self.wait.until(EC.element_to_be_clickable((
-            By.XPATH,
-            "//*[@id=\"mat-dialog-0\"]/ng-component/app-theme/div/div/div[2]/button[2]"
-        )))
-        reject_all_button_confirm.click()
-        
-        # Switch back to main frame
-        logger.info("Switching back to main page content...")
-        self.driver.switch_to.default_content()
+        except (NoSuchElementException, TimeoutException) as e_cookies:
+            logger.error("Cookie banner or 'Manage Settings' link not found. "
+                         "Assuming cookies are not rejected.")
     
     
     #TODO: clean up and try to more elegantly extract things en masse
@@ -352,16 +357,12 @@ class MainMapScraper:
             self.driver.get(url)
             
             # Have to maximize to see all links...weirdly
+            #TODO: if we can parse different locations without re-loading the window, move this to driver init
             self.driver.maximize_window()
 
-            try:
-                self.reject_all_cookies_dialog()
-                
-            except (NoSuchElementException, TimeoutException) as e_cookies:
-                logger.error("Cookie banner or 'Manage Settings' link not found. Assuming cookies are not rejected.")
-                
-            # TODO: try-except here
+            self.reject_all_cookies_dialog()
             self.exit_login_dialog()
+            
             df_location, df_checkins = self.scrape_location(location_id)
             all_locations.append(df_location)
             all_checkins.append(df_checkins)
