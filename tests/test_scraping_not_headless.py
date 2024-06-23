@@ -1,4 +1,4 @@
-from evlens.data.plugshare import Scraper
+from evlens.data.plugshare import MainMapScraper
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
 # Electrify America in Springfield, VA mall parking lot
@@ -13,7 +13,7 @@ TODAY_STRING = date.today().strftime("%m-%d-%Y")
 
 
 if __name__ == '__main__':
-    s = Scraper(
+    s = MainMapScraper(
         f"../data/external/plugshare/{TODAY_STRING}/",
         timeout=3,
         headless=False

@@ -80,9 +80,23 @@ class CheckIn:
         
         # Drop anything that is all-nulls when ignoring location_id
         return pd.DataFrame(output, index=[0]).dropna(how='all')
+    
+
+class SearchCriterion():
+    def __init__(
+        self,
+        latitude: float,
+        longitude: float,
+        radius_in_miles: float,
+        wait_time_for_map_pan: float
+    ):
+        self.latitude = latitude
+        self.longitude = longitude
+        self.radius = radius_in_miles
+        self.time_to_pan = wait_time_for_map_pan
 
 
-class Scraper:
+class MainMapScraper:
 
     def __init__(
         self,
@@ -120,9 +134,6 @@ class Scraper:
         
         self.driver = webdriver.Chrome(options=self.chrome_options)
         self.wait = WebDriverWait(self.driver, self.timeout)
-        
-        #TODO: get rid of these through refactor
-        self.locationlist = []
         
     def exit_login_dialog(self):
         logger.info("Attempting to exit login dialog...")
@@ -301,7 +312,6 @@ class Scraper:
             range(start_location, end_location+1),
             desc="Parsing stations"
         )):
-            self.locationlist.append(location_id)
             url = f"https://www.plugshare.com/location/{location_id}"
             self.driver.get(url)
             
