@@ -6,6 +6,8 @@ import os
 import re
 from typing import Tuple
 
+from joblib import dump as joblib_dump
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -302,6 +304,17 @@ class MainMapScraper:
             df_checkins
         )
         
+    def save_checkpoint(self, data: Union[pd.DataFrame, Set[str]], data_name: str):
+        logger.info(f"Saving checkpoint '{data_name}'...")
+                
+        path = self.save_path + f"{data_name}.pkl"
+        if isinstance(data, pd.DataFrame):
+            data.to_pickle(path)
+        elif isinstance(data, set):
+            joblib_dump(data, path)
+            
+        logger.info("Save complete!")
+        
     #TODO: add in saving to disk at X pages (pickle for now)
     def run(self, start_location, end_location):
         logger.info("Beginning scraping!")
@@ -331,13 +344,14 @@ class MainMapScraper:
             all_checkins.append(df_checkins)
             
             if i+1 % self.save_every == 0:
-                logger.info(f"Saving checkpoint at location {i}")
-                
-                path = self.save_path + f"df_locations_{i}.pkl"
-                pd.concat(all_locations, ignore_index=True).to_pickle(path)
-                
-                path = self.save_path + f"df_checkins_{i}.pkl"
-                pd.concat(all_checkins, ignore_index=True).to_pickle(path)
+                self.save_checkpoint(
+                    pd.concat(all_locations, ignore_index=True),
+                    data_name=f'df_locations_{i}'
+                )
+                self.save_checkpoint(
+                    pd.concat(all_checkins, ignore_index=True),
+                    data_name=f'df_checkins_{i}'
+                )
 
             #TODO: tune between page switches
             logger.info(f"Sleeping for {self.page_load_pause} seconds")
@@ -347,10 +361,15 @@ class MainMapScraper:
         
         #TODO: add station location integers as column
         df_all_locations = pd.concat(all_locations, ignore_index=True)
-        df_all_locations.to_pickle(self.save_path + f"df_all_locations.pkl")
+        self.save_checkpoint(df_all_locations, data_name='df_all_locations')
         
         df_all_checkins = pd.concat(all_checkins, ignore_index=True)
-        df_all_checkins.to_pickle(self.save_path + f"df_all_checkins.pkl")
+        self.save_checkpoint(df_all_checkins, data_name='df_all_checkins')
         
         logger.info("Scraping complete!")
         return df_all_locations, df_all_checkins
+    
+    
+class LocationIDScraper(MainMapScraper):
+    
+    raise NotImplementedError
