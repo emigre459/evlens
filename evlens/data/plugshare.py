@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import os
 import re
-from typing import Tuple, Set, Union
+from typing import Tuple, Set, Union, List
 
 from joblib import dump as joblib_dump
 
@@ -18,6 +18,13 @@ from selenium.webdriver.remote.webelement import WebElement
 
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
+
+
+ALLOWABLE_PLUG_TYPES = [
+    # 'Tesla Supercharger',
+    'SAE Combo DC CCS',
+    # 'J-1772'
+]
 
 
 class CheckIn:
@@ -316,13 +323,29 @@ class MainMapScraper:
         logger.info("Save complete!")
         
     #TODO: add in saving to disk at X pages (pickle for now)
-    def run(self, start_location, end_location):
+    def run(
+        self,
+        locations: List[str] = None,
+        start_location: int = None,
+        end_location: int = None
+    ):
         logger.info("Beginning scraping!")
 
         all_locations = []
         all_checkins = []
+        
+        if locations is not None:
+            logger.info("`locations` is not None, so using that")        
+        elif start_location is not None and end_location is not None:
+            logger.info(f"Building location ID list covering "
+                        f"[{start_location}, {end_location}], inclusive")
+            locations = list(range(start_location, end_location+1))
+        elif start_location is None or end_location is None and locations is None:
+            raise ValueError("Either `locations` must not be None or both "
+                             "`start_location` AND `end_location` must not be None")
+        
         for i, location_id in enumerate(tqdm(
-            range(start_location, end_location+1),
+            locations,
             desc="Parsing stations"
         )):
             url = f"https://www.plugshare.com/location/{location_id}"
@@ -373,4 +396,8 @@ class MainMapScraper:
     
 class LocationIDScraper(MainMapScraper):
     
-    pass
+    def run(self, search_criteria: List[SearchCriterion]) -> Set[str]:
+        logger.info("Beginning location ID scraping!")
+        
+        
+        logger.info("All location IDs scraped (that we could)!")
