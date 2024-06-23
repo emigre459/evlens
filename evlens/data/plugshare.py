@@ -119,14 +119,14 @@ class MainMapScraper:
 
     def __init__(
         self,
-        save_filepath: str,
+        save_file_directory: str,
         save_every: int = 100,
         timeout: int = 3,
         page_load_pause: int = 1.5,
         headless: bool = True
     ):
         self.timeout = timeout
-        self.save_path = save_filepath
+        self.save_path = save_file_directory
         self.save_every = save_every
         self.page_load_pause = page_load_pause
         
@@ -547,7 +547,7 @@ class LocationIDScraper(MainMapScraper):
                 )))
 
             try:
-                location_ids += self.parse_location_link(pins[i])
+                location_ids.append(self.parse_location_link(pins[i]))
             except (ElementClickInterceptedException, ElementNotInteractableException):
                 logger.error("Pin %s not clickable", i)
             except (NoSuchElementException):
@@ -563,6 +563,7 @@ class LocationIDScraper(MainMapScraper):
         logger.info("Beginning location ID scraping!")
         
         # Load up the page
+        self.driver.maximize_window()
         self.driver.get(EMBEDDED_DEV_MAP_URL)
         
         # Select only the plug filters we care about
@@ -597,7 +598,7 @@ class LocationIDScraper(MainMapScraper):
         self.driver.quit()
 
         df_locations = pd.concat(dfs, ignore_index=True)\
-            .drop_duplicates(subset=[['location_id']])
+            .drop_duplicates(subset=['location_id'])
         self.save_checkpoint(df_locations, "df_location_ids")
         
         logger.info("All location IDs scraped (that we could)!")
