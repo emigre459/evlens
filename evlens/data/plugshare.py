@@ -594,7 +594,7 @@ class LocationIDScraper(MainMapScraper):
             }))
             
             # Save checkpoint
-            if i+1 % self.save_every == 0:
+            if i+1 % self.save_every == 0 and len(dfs) > 0:
                 self.save_checkpoint(
                     pd.concat(dfs, ignore_index=True),
                     data_name=f'df_location_ids_{i}'
@@ -605,9 +605,13 @@ class LocationIDScraper(MainMapScraper):
         # self.driver.switch_to.default_content()
         self.driver.quit()
 
-        df_locations = pd.concat(dfs, ignore_index=True)\
-            .drop_duplicates(subset=['location_id'])
-        self.save_checkpoint(df_locations, "df_location_ids")
+        if not df_locations.empty:
+            df_locations = pd.concat(dfs, ignore_index=True)\
+                .drop_duplicates(subset=['location_id'])
+            self.save_checkpoint(df_locations, "df_location_ids")
+            logger.info("All location IDs scraped (that we could)!")
+            return df_locations
         
-        logger.info("All location IDs scraped (that we could)!")
-        return df_locations
+        else:
+            logger.error("Something went horribly wrong, why do we have ZERO locations?!")
+            return None
