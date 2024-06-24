@@ -6,7 +6,6 @@ from tqdm import tqdm
 
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
-logger.info("TEST!")
 
 from datetime import date
 TODAY_STRING = date.today().strftime("%m-%d-%Y")
@@ -25,6 +24,7 @@ if __name__ == '__main__':
     # Should have columns [latitude, longitude, cell_area_sq_miles]
     df_map_tiles = pd.read_pickle('references/h3_hexagon_coordinates.pkl')
     
+    #TODO: build in functionality for starting from a checkpoint file i+1
     criteria = []
     for _, row in tqdm(
         df_map_tiles.iterrows(),
@@ -34,7 +34,7 @@ if __name__ == '__main__':
         criteria.append(SearchCriterion(
             row['latitude'],
             row['longitude'],
-            row['cell_area_sq_miles'],
+            row['cell_radius_miles'],
             wait_time_for_map_pan=SLEEP_FOR_IFRAME_PAN
         ))
     df_location_ids = lis.run(criteria[:3])
