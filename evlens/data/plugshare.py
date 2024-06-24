@@ -599,13 +599,16 @@ class LocationIDScraper(MainMapScraper):
                     pd.concat(dfs, ignore_index=True),
                     data_name=f'df_location_ids_{i}'
                 )
+                # Try to save some memory
+                del dfs
+                dfs = []
             
             sleep(search_criterion.time_to_pan)
 
         # self.driver.switch_to.default_content()
         self.driver.quit()
 
-        if not df_locations.empty:
+        if len(dfs) > 0:
             df_locations = pd.concat(dfs, ignore_index=True)\
                 .drop_duplicates(subset=['location_id'])
             self.save_checkpoint(df_locations, "df_location_ids")
