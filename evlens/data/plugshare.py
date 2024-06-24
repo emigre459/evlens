@@ -540,7 +540,7 @@ class LocationIDScraper(MainMapScraper):
         # Have to do this each time due to map panning when pin click happens
         # And have to re-find pins so WebElement for each pin doesn't go stale
         location_ids = []
-        for i in tqdm(range(num_pins_in_view), desc='Parsing pins'):
+        for i in range(num_pins_in_view):
         # Do another search if it's not the first time
             if i != 0:
                 self.search_location(search_criterion)
