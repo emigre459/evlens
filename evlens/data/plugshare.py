@@ -523,10 +523,15 @@ class LocationIDScraper(MainMapScraper):
         map_iframe = self.find_and_use_map_iframe()
 
         # Grab map pins seen for chargers in map viewport
-        pins = self.wait.until(EC.visibility_of_all_elements_located((
-            By.CSS_SELECTOR,
-            'img[src="https://maps.gstatic.com/mapfiles/transparent.png"]'
-        )))
+        try:
+            pins = self.wait.until(EC.visibility_of_all_elements_located((
+                By.CSS_SELECTOR,
+                'img[src="https://maps.gstatic.com/mapfiles/transparent.png"]'
+            )))
+            
+        except TimeoutError:
+            logger.error("No pins found here, moving on!")
+            return None
 
         num_pins_in_view = len(pins)
         
@@ -576,6 +581,9 @@ class LocationIDScraper(MainMapScraper):
         )):
             self.search_location(search_criterion)
             location_ids = self.grab_location_ids(search_criterion)
+            if location_ids is None:
+                continue
+            
             num_locations_found = len(location_ids)
             dfs.append(pd.DataFrame({
                 'parsed_datetime': [get_current_datetime()] * num_locations_found,
