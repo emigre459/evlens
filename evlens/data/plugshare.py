@@ -330,7 +330,9 @@ class MainMapScraper:
         logger.info(f"Saving checkpoint '{data_name}'...")
                 
         path = self.save_path + f"{data_name}.pkl"
-        if isinstance(data, pd.DataFrame):
+        if data is None:
+            logger.warning("Not saving as `data` is None")
+        elif isinstance(data, pd.DataFrame):
             data.to_pickle(path)
         elif isinstance(data, set):
             joblib_dump(data, path)

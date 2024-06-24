@@ -18,7 +18,19 @@ RADIUS = 1 # miles
 
 
 #TODO: tune how long we need to sleep and timeout
+#TODO: add argparsing for indicating what criterion we should start with (e.g. for resuming from a checkpoint)
 if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--starting_criterion_index",
+        type=int,
+        default=0,
+        help="The starting index for the criterion (default: 0). Useful for restarting from a checkpoint file (e.g. start at i+1 if file is marked as `_{i}.pkl`)"
+    )
+    args = parser.parse_args()
+    
     lis = LocationIDScraper(
         f"./data/external/plugshare/{TODAY_STRING}/",
         timeout=SELENIUM_WAIT_TIME,
@@ -30,15 +42,8 @@ if __name__ == '__main__':
     df_map_tiles = pd.read_pickle('references/h3_hexagon_coordinates.pkl')
     
     #TODO: build in functionality for starting from a checkpoint file i+1
-    # criteria = []
-    # Make sure we have some pins we know should be good
-    # Expect location IDs [563873, 574882]
-    criteria = [SearchCriterion(
-        TEST_COORDS[0],
-        TEST_COORDS[1],
-        RADIUS,
-        SLEEP_FOR_IFRAME_PAN
-    )]
+    criteria = []
+    
     for _, row in tqdm(
         df_map_tiles.iterrows(),
         desc='Building search criteria from gridded map',
@@ -50,4 +55,4 @@ if __name__ == '__main__':
             row['cell_radius_miles'],
             wait_time_for_map_pan=SLEEP_FOR_IFRAME_PAN
         ))
-    df_location_ids = lis.run(criteria[:3])
+    df_location_ids = lis.run(criteria[args.starting_criterion_index:])
