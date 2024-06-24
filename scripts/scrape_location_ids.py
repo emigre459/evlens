@@ -55,4 +55,7 @@ if __name__ == '__main__':
             row['cell_radius_miles'],
             wait_time_for_map_pan=SLEEP_FOR_IFRAME_PAN
         ))
-    df_location_ids = lis.run(criteria[args.starting_criterion_index:])
+    df_location_ids = lis.run(
+        criteria[args.starting_criterion_index:],
+        progress_bar_start=args.starting_criterion_index
+    )

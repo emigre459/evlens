@@ -566,6 +566,7 @@ class LocationIDScraper(MainMapScraper):
         self,
         search_criteria: List[SearchCriterion],
         plugs_to_include: List[str] = ALLOWABLE_PLUG_TYPES,
+        progress_bar_start: int = 0
         ) -> pd.DataFrame:
         logger.info("Beginning location ID scraping!")
         
@@ -579,7 +580,8 @@ class LocationIDScraper(MainMapScraper):
         dfs = []
         for i, search_criterion in enumerate(tqdm(
             search_criteria,
-            desc="Searching map tiles"
+            desc="Searching map tiles",
+            initial=progress_bar_start
         )):
             self.search_location(search_criterion)
             location_ids = self.grab_location_ids(search_criterion)
