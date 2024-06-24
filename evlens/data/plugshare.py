@@ -598,7 +598,8 @@ class LocationIDScraper(MainMapScraper):
             }))
             
             # Save checkpoint
-            if i+1 % self.save_every == 0 and len(dfs) > 0:
+            if i + 1 + progress_bar_start % self.save_every == 0 \
+            and len(dfs) > 0:
                 self.save_checkpoint(
                     pd.concat(dfs, ignore_index=True),
                     data_name=f'df_location_ids_{i}'
