@@ -1,9 +1,8 @@
 from time import time
 from evlens.data.plugshare import LocationIDScraper, SearchCriterion
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
-
-# Electrify America in Springfield, VA mall parking lot
-TEST_LOCATION = 252784
+import pandas as pd
+from tqdm import tqdm
 
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
@@ -12,28 +11,30 @@ logger.info("TEST!")
 from datetime import date
 TODAY_STRING = date.today().strftime("%m-%d-%Y")
 
-# Moynihan Train Station - should have only one pin for CCS
-TEST_COORDS = (40.7525834,-73.9999498) # Lat, long
-RADIUS = 1 # miles
 SLEEP_FOR_IFRAME_PAN = 1.5
 
 
 if __name__ == '__main__':
-    start_time = time()
     lis = LocationIDScraper(
         f"./data/external/plugshare/{TODAY_STRING}/",
         timeout=3,
-        headless=False
+        headless=True
     )
-
-    sc = SearchCriterion(
-        TEST_COORDS[0],
-        TEST_COORDS[1],
-        RADIUS,
-        SLEEP_FOR_IFRAME_PAN
-    )
-    df_location_ids = lis.run([sc])
-
-    print(f"Took {time() - start_time} seconds to execute")
     
-    assert not df_location_ids.empty, "Scrape results empty"
+    # Grab our map of USA with hexagonal tiles for searching
+    # Should have columns [latitude, longitude, cell_area_sq_miles]
+    df_map_tiles = pd.read_pickle('references/h3_hexagon_coordinates.pkl')
+    
+    criteria = []
+    for _, row in tqdm(
+        df_map_tiles.iterrows(),
+        desc='Building search criteria from gridded map',
+        total=len(df_map_tiles)
+    ):
+        criteria.append(SearchCriterion(
+            row['latitude'],
+            row['longitude'],
+            row['cell_area_sq_miles'],
+            wait_time_for_map_pan=SLEEP_FOR_IFRAME_PAN
+        ))
+    df_location_ids = lis.run(criteria[:3])

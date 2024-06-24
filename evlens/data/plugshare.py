@@ -529,7 +529,7 @@ class LocationIDScraper(MainMapScraper):
                 'img[src="https://maps.gstatic.com/mapfiles/transparent.png"]'
             )))
             
-        except TimeoutError:
+        except TimeoutException:
             logger.error("No pins found here, moving on!")
             return None
 
