@@ -25,6 +25,11 @@ google-generativeai = "^0.6.0"
 chardet = "^5.2.0"
 pytest = "^8.2.2"
 selenium = "^4.21.0"
+joblib = "^1.4.2"
+geopandas = "^0.14.4"
+matplotlib = "^3.9.0"
+h3pandas = "^0.2.6"
+pyproj = "^3.6.1"
 
 
 [build-system]
