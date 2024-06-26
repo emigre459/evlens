@@ -9,6 +9,7 @@ logger = setup_logger(__name__)
 
 from datetime import date
 TODAY_STRING = date.today().strftime("%m-%d-%Y")
+DEFAULT_SAVE_PATH = f"./data/external/plugshare/{TODAY_STRING}/"
 
 SELENIUM_WAIT_TIME = 3
 SLEEP_FOR_IFRAME_PAN = 1.5 # this has been tested but not in headless mode, maybe can go faster?
@@ -18,11 +19,20 @@ RADIUS = 1 # miles
 
 
 #TODO: tune how long we need to sleep and timeout
-#TODO: add argparsing for indicating what criterion we should start with (e.g. for resuming from a checkpoint)
 if __name__ == '__main__':
     import argparse
-
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "map_tile_filepath",
+        type=str,
+        help="The filepath to the map tile coordinates pickle file (dataframe). If run from repo root, commonly the value is 'references/h3_hexagon_coordinates.pkl'"
+    )
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        default=DEFAULT_SAVE_PATH,
+        help="The directory to save the scraped data in"
+    )
     parser.add_argument(
         "--starting_criterion_index",
         type=int,
@@ -32,14 +42,14 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     lis = LocationIDScraper(
-        f"./data/external/plugshare/{TODAY_STRING}/",
+        args.output_dir,
         timeout=SELENIUM_WAIT_TIME,
         headless=True
     )
     
     # Grab our map of USA with hexagonal tiles for searching
     # Should have columns [latitude, longitude, cell_area_sq_miles]
-    df_map_tiles = pd.read_pickle('references/h3_hexagon_coordinates.pkl')
+    df_map_tiles = pd.read_pickle(args.map_tile_filepath)
     
     #TODO: build in functionality for starting from a checkpoint file i+1
     criteria = []
