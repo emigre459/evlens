@@ -103,8 +103,10 @@ class Scraper:
         
         self.chrome_options = Options()
         
-        # Removes automation infobar
+        # Removes automation infobar and other bot-looking things
         self.chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        self.chrome_options.add_experimental_option("useAutomationExtension", False)
+        self.chrome_options.add_argument("--disable-blink-features=AutomationControlled")
         
         # Run without window open
         if headless:
@@ -123,6 +125,11 @@ class Scraper:
         
         #TODO: get rid of these through refactor
         self.locationlist = []
+        
+        # Make sure we look less bot-like
+        # Thanks to https://stackoverflow.com/a/53040904/8630238
+        self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+        self.driver.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.53 Safari/537.36'})
         
     def exit_login_dialog(self):
         logger.info("Attempting to exit login dialog...")
