@@ -8,6 +8,25 @@ from evlens.logs import setup_logger
 logger = setup_logger(__name__)
 
 
+def parse_n_jobs(n_jobs: Union[int, None]) -> int:
+    '''
+    Parses the possible_n_jobs argument and returns an integer representing
+    how many jobs should be run in parallel. If None, returns the number of
+    available CPUs minus one so the parent process has a CPU to itself.
+    '''
+    num_cpus = multiprocessing.cpu_count() - 1
+    if  n_jobs == -1 or n_jobs is None:
+        logger.info("Parallelizing across %s jobs", num_cpus)
+        n_jobs = num_cpus
+    elif n_jobs > num_cpus:
+        logger.warning("`n_jobs` (%s) is greater than the number of available CPUs (%s). Setting n_jobs to %s", n_jobs, num_cpus, num_cpus)
+        n_jobs = num_cpus
+    elif n_jobs < -1 or n_jobs == 0:
+        raise ValueError("`n_jobs` must be -1 or a positive integer")
+    
+    return n_jobs
+    
+
 #TODO: make it so you don't need to assume `run()` method name and can feed run()-ish method more than one arg
 #TODO: enable different kwarg config for each actor
 def parallelized_data_processing(
@@ -17,17 +36,7 @@ def parallelized_data_processing(
     **kwargs
 ):
     
-    num_cpus = multiprocessing.cpu_count() - 1
-    if  n_jobs == -1:        
-        logger.info("Parallelizing across %s jobs", num_cpus)
-        n_jobs = num_cpus
-    elif n_jobs > num_cpus:
-        logger.warning("`n_jobs` (%s) is greater than the number of available CPUs (%s). Setting n_jobs to %s", n_jobs, num_cpus, num_cpus)
-        n_jobs = num_cpus
-    elif n_jobs < -1 or n_jobs == 0:
-        raise ValueError("`n_jobs` must be -1 or a positive integer")
-    
-       
+    n_jobs = parse_n_jobs(n_jobs)
     ray_context = ray.init(
         num_cpus=n_jobs,
         # num_gpus=0,
