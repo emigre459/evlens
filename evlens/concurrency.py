@@ -4,8 +4,6 @@ import multiprocessing
 import ray
 import ray.exceptions
 
-from evlens.data.plugshare import ParallelScraper
-
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
 

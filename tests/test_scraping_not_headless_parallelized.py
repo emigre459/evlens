@@ -20,7 +20,7 @@ if __name__ == '__main__':
         [ParallelScraper for _ in range(len(locations))],
         locations,
         save_filepath = f"../data/external/plugshare/{TODAY_STRING}/",
-        timeout=3,
+        timeout=5,
         headless=False
     )
     
