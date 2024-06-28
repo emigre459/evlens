@@ -14,6 +14,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.remote.webelement import WebElement
 
+import ray
+
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
 
@@ -190,7 +192,6 @@ class Scraper:
     
     
     #TODO: clean up and try to more elegantly extract things en masse
-    #TODO: use fewer attributes for data maintenance
     def scrape_location(self, location_id: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
         '''
         Scrapes a single location (single webpage)
@@ -351,3 +352,32 @@ class Scraper:
         
         logger.info("Scraping complete!")
         return df_all_locations, df_all_checkins
+    
+    
+@ray.remote
+class ParallelScraper(Scraper):
+    def run(self, location_id: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        '''
+        Overrides original serial `run` method to be a single call to `scrape_location()` so we can setup parallel runs with ray.
+        
+        See `scrape_location()` method for information on inputs and outputs.
+        '''
+        url = f"https://www.plugshare.com/location/{location_id}"
+        self.driver.get(url)
+        
+        # Have to maximize to see all links...weirdly
+        self.driver.maximize_window()
+
+        try:
+            self.reject_all_cookies_dialog()
+            
+        except (NoSuchElementException, TimeoutException) as e_cookies:
+            logger.error("Cookie banner or 'Manage Settings' link not found. Assuming cookies are not rejected.")
+            
+        # TODO: try-except here
+        self.exit_login_dialog()            
+        results = self.scrape_location(location_id)        
+        self.driver.quit()
+        
+        return results
+        

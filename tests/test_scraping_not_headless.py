@@ -6,7 +6,6 @@ TEST_LOCATION = 252784
 
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
-logger.info("TEST!")
 
 from datetime import date
 TODAY_STRING = date.today().strftime("%m-%d-%Y")
