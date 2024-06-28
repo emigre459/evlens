@@ -192,7 +192,11 @@ class Scraper:
     
     
     #TODO: clean up and try to more elegantly extract things en masse
-    def scrape_location(self, location_id: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def scrape_location(
+        self,
+        location_id: int,
+        progressbar: bool = True
+        ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         '''
         Scrapes a single location (single webpage)
 
@@ -278,7 +282,11 @@ class Scraper:
             self.detailed_checkins = detailed_checkins
             
             checkin_dfs = []
-            for checkin in tqdm(detailed_checkins, desc="Parsing checkins for location"):
+            if progressbar:
+                iterator = tqdm(detailed_checkins, desc="Parsing checkins for location")
+            else:
+                iterator = detailed_checkins
+            for checkin in iterator:
                 c = CheckIn(checkin)
                 out = c.parse()
                 if not out.empty:
@@ -354,7 +362,7 @@ class Scraper:
         return df_all_locations, df_all_checkins
     
     
-@ray.remote
+@ray.remote(max_restarts=3, max_task_retries=3)
 class ParallelScraper(Scraper):
     def run(self, location_id: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
         '''
@@ -376,7 +384,7 @@ class ParallelScraper(Scraper):
             
         # TODO: try-except here
         self.exit_login_dialog()            
-        results = self.scrape_location(location_id)        
+        results = self.scrape_location(location_id, progressbar=False)        
         self.driver.quit()
         
         return results
