@@ -12,16 +12,23 @@ TODAY_STRING = date.today().strftime("%m-%d-%Y")
 
 
 if __name__ == '__main__':
-    locations = [TEST_LOCATION, TEST_LOCATION, TEST_LOCATION]
+    LOCATION_COUNT = 12
+    locations = [TEST_LOCATION] * LOCATION_COUNT
+    N_JOBS = 11
     
-    # Setup as many scrapers as we have locations (not usually how it would work, since we can only setup n_jobs scrapers and have more locations than that...)
-    
+    #TODO: tune how long we need to sleep and timeout
     results = parallelized_data_processing(
-        [ParallelScraper for _ in range(len(locations))],
+        ParallelScraper,
         locations,
+        n_jobs=N_JOBS,
         save_filepath = f"../data/external/plugshare/{TODAY_STRING}/",
         timeout=5,
-        headless=False
+        headless=False,
+        progress_bars=False
     )
     
-    assert len(results) == 3, f"Found {len(results)} locations, not the 3 expected"
+    assert len(results) == N_JOBS, f"Found {len(results)} batches, not the {N_JOBS} expected"
+    num_locations_scraped = sum([len(e) for e in results])
+    assert num_locations_scraped == LOCATION_COUNT, f"Found {num_locations_scraped} locations, not the {LOCATION_COUNT} expected"
+    
+    #TODO: add more tests to check that all data is there

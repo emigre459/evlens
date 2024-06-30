@@ -1,6 +1,8 @@
 from typing import List, Union, Any
+import math
 
 import multiprocessing
+import numpy as np
 import ray
 import ray.exceptions
 
@@ -16,7 +18,6 @@ def parse_n_jobs(n_jobs: Union[int, None]) -> int:
     '''
     num_cpus = multiprocessing.cpu_count() - 1
     if  n_jobs == -1 or n_jobs is None:
-        logger.info("Parallelizing across %s jobs", num_cpus)
         n_jobs = num_cpus
     elif n_jobs > num_cpus:
         logger.warning("`n_jobs` (%s) is greater than the number of available CPUs (%s). Setting n_jobs to %s", n_jobs, num_cpus, num_cpus)
@@ -24,32 +25,69 @@ def parse_n_jobs(n_jobs: Union[int, None]) -> int:
     elif n_jobs < -1 or n_jobs == 0:
         raise ValueError("`n_jobs` must be -1 or a positive integer")
     
+    logger.info("Parallelizing across %s workers", n_jobs)
     return n_jobs
+
+
+def get_batches_by_worker(data, n_jobs):
+    data_size = len(data)
+    
+    batch_size = math.floor(data_size / n_jobs)
+    leftovers = data_size % n_jobs
+
+    even_batch_sizes = np.ones(n_jobs) * batch_size
+
+    # Format is (num_add_before_original_array, num_add_after...)
+    num_zeroes_for_padding = (0, n_jobs - leftovers)
+    adders = np.pad(np.ones(leftovers), num_zeroes_for_padding)
+    
+    # These should be integers for each element indicating how big the data slice is for each
+    data_index_lengths = even_batch_sizes + adders
+    
+    ending_indices = np.cumsum(data_index_lengths).astype(int)
+    starting_indices = (ending_indices  - data_index_lengths).astype(int)
+    
+    batches = []
+    for start_idx, end_idx in zip(starting_indices, ending_indices):
+        batches.append(data[start_idx:end_idx])
+        
+    if n_jobs > len(data):
+        return [batch for batch in batches if len(batch) > 0]
+    return batches
     
 
 #TODO: make it so you don't need to assume `run()` method name and can feed run()-ish method more than one arg
 #TODO: enable different kwarg config for each actor
 def parallelized_data_processing(
-    actors: List[Any],
+    actor: Any,
     run_args: List[Any],
     n_jobs: int = -1,
     **kwargs
 ):
     
+    # Just in case
+    ray.shutdown()
     n_jobs = parse_n_jobs(n_jobs)
+    
     ray_context = ray.init(
         num_cpus=n_jobs,
         # num_gpus=0,
         include_dashboard=True
     )
-    logger.info("Ray dashboard can be found at %s",
-                ray_context.dashboard_url)
     
-    parallel_actors = [actor.remote(**kwargs) for actor in actors]
+    # Make unique copies of each actor
+    parallel_actors = [actor.remote(**kwargs) for _ in range(n_jobs)]
     
+    # Batch up in n_actors-sized batches across all run_args
+    run_arg_batches = get_batches_by_worker(run_args, n_jobs)
+    logger.info(
+        "Generated %s batches of sizes %s",
+        len(run_arg_batches),
+        [len(batch) for batch in run_arg_batches]
+    )
     try:    
         results = ray.get([
-            parallel_actors[i].run.remote(run_arg) for i, run_arg in enumerate(run_args)
+            parallel_actors[i].run.remote(batch) for i, batch in enumerate(run_arg_batches)
         ])
     except (ray.exceptions.RayTaskError, ray.exceptions.RayActorError) as e:
         logger.error("Ray had an error. See the dashboard for more information.")

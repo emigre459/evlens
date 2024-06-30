@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import os
 import re
-from typing import Tuple
+from typing import Tuple, List
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -15,7 +15,6 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.remote.webelement import WebElement
 
 import ray
-import asyncio
 
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
@@ -93,12 +92,14 @@ class Scraper:
         save_every: int = 100,
         timeout: int = 3,
         page_load_pause: int = 1,
-        headless: bool = True
+        headless: bool = True,
+        progress_bars: bool = True
     ):
         self.timeout = timeout
         self.save_path = save_filepath
         self.save_every = save_every
         self.page_load_pause = page_load_pause
+        self.use_tqdm = progress_bars
         
         if not os.path.exists(self.save_path):
             logger.warning("Save filpath does not exist, creating it...")
@@ -125,9 +126,6 @@ class Scraper:
         
         self.driver = webdriver.Chrome(options=self.chrome_options)
         self.wait = WebDriverWait(self.driver, self.timeout)
-        
-        #TODO: get rid of these through refactor
-        self.locationlist = []
         
         # Make sure we look less bot-like
         # Thanks to https://stackoverflow.com/a/53040904/8630238
@@ -201,9 +199,7 @@ class Scraper:
     #TODO: clean up and try to more elegantly extract things en masse
     def scrape_location(
         self,
-        location_id: int,
-        progressbar: bool = True,
-        sleep_async: bool = False
+        location_id: int
         ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         '''
         Scrapes a single location (single webpage)
@@ -290,7 +286,7 @@ class Scraper:
             self.detailed_checkins = detailed_checkins
             
             checkin_dfs = []
-            if progressbar:
+            if self.use_tqdm:
                 iterator = tqdm(detailed_checkins, desc="Parsing checkins for location")
             else:
                 iterator = detailed_checkins
@@ -315,21 +311,25 @@ class Scraper:
             df_checkins
         )
         
-    def run(self, start_location, end_location):
+    def run(self, locations: List[int]) -> Tuple[pd.DataFrame, pd.DataFrame]:
         logger.info("Beginning scraping!")
+        
+        # Have to maximize to see all links...weirdly
+        self.driver.maximize_window()
 
         all_locations = []
         all_checkins = []
-        for i, location_id in enumerate(tqdm(
-            range(start_location, end_location+1),
-            desc="Parsing stations"
-        )):
-            self.locationlist.append(location_id)
+        if self.use_tqdm:
+            iterator = enumerate(tqdm(
+                locations,
+                desc="Parsing stations"
+            ))
+        else:
+            iterator = enumerate(locations)
+            
+        for i, location_id in iterator:
             url = f"https://www.plugshare.com/location/{location_id}"
             self.driver.get(url)
-            
-            # Have to maximize to see all links...weirdly
-            self.driver.maximize_window()
 
             self.reject_all_cookies_dialog()                
             self.exit_login_dialog()
@@ -337,6 +337,7 @@ class Scraper:
             all_locations.append(df_location)
             all_checkins.append(df_checkins)
             
+            #TODO: replace this saving logic (and the final save logic) with on-the-fly database saves
             if i+1 % self.save_every == 0:
                 logger.info(f"Saving checkpoint at location {i}")
                 
@@ -352,7 +353,6 @@ class Scraper:
 
         self.driver.quit()
         
-        #TODO: add station location integers as column
         df_all_locations = pd.concat(all_locations, ignore_index=True)
         df_all_locations.to_pickle(self.save_path + f"df_all_locations.pkl")
         
@@ -365,43 +365,5 @@ class Scraper:
     
 @ray.remote(max_restarts=3, max_task_retries=3)
 class ParallelScraper(Scraper):
-    def run(self, location_id: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        '''
-        Overrides original serial `run` method to be a single call to `scrape_location()` so we can setup parallel runs with ray.
-        
-        See `scrape_location()` method for information on inputs and outputs.
-        '''
-        url = f"https://www.plugshare.com/location/{location_id}"
-        self.driver.get(url)
-        
-        # Have to maximize to see all links...weirdly
-        self.driver.maximize_window()
-
-        self.reject_all_cookies_dialog()
-        self.exit_login_dialog()            
-        results = self.scrape_location(location_id, progressbar=False)        
-        self.driver.quit()
-        
-        return results
-    
-    async def async_run(self, location_id: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        '''
-        Overrides original serial `run` method to be a single call to `scrape_location()` so we can setup parallel runs with ray.
-        
-        See `scrape_location()` method for information on inputs and outputs.
-        '''
-        #TODO: consider using async with asyncio.Semaphore(n_jobs) as sem:...
-        url = f"https://www.plugshare.com/location/{location_id}"
-        self.driver.get(url)
-        
-        # Have to maximize to see all links...weirdly
-        self.driver.maximize_window()
-
-        self.reject_all_cookies_dialog()            
-        self.exit_login_dialog()        
-        tasks = [self.scrape_location.remote(location_id, progressbar=False) ]
-        await asyncio.sleep(self.page_load_pause)
-        self.driver.quit()
-        
-        return results
+    pass
         
