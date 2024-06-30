@@ -1,6 +1,8 @@
 from evlens.data.plugshare import ParallelMainMapScraper
 from evlens.concurrency import parallelized_data_processing
 
+from joblib import dump
+
 # Electrify America in Springfield, VA mall parking lot
 TEST_LOCATION = 252784
 
@@ -32,5 +34,7 @@ if __name__ == '__main__':
     assert len(results) == N_JOBS, f"Found {len(results)} batches, not the {N_JOBS} expected"
     num_locations_scraped = sum([len(e) for e in results])
     assert num_locations_scraped == LOCATION_COUNT, f"Found {num_locations_scraped} locations, not the {LOCATION_COUNT} expected"
+    
+    dump(results, 'test_results.pkl')
     
     #TODO: add more tests to check that all data is there

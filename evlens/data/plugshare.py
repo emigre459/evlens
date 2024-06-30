@@ -333,6 +333,10 @@ class MainMapScraper:
             logger.error("Comments error", exc_info=True)
             df_checkins = pd.DataFrame()
             
+        except Exception:
+            logger.error("Did we get blocked from clicking More Comments?", exc_info=True)
+            self.save_error_screenshot('checkins.png')
+            
         logger.info("Page scrape complete!")
         df_location = pd.DataFrame(output, index=[0])
         df_location['id'] = location_id
