@@ -16,6 +16,8 @@ from selenium.webdriver.remote.webelement import WebElement
 
 import ray
 
+from evlens import get_current_datetime
+
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
 
@@ -24,8 +26,18 @@ class CheckIn:
     '''
     Tracks all the different components of a single check-in and can return as a single-row pandas DataFrame to be used elsewhere.
     '''
-    def __init__(self, checkin_element: WebElement):
+    def __init__(
+        self,
+        checkin_element: WebElement,
+        error_screenshot_savepath: str
+    ):
         self.element = checkin_element
+        self.error_screenshot_savepath = error_screenshot_savepath
+        
+    def save_error_screenshot(self, filename: str):
+        filename = get_current_datetime() + filename
+        path = os.path.join(self.error_screenshot_savepath, filename)
+        self.element.driver.save_screenshot(path)
         
     def parse(self) -> pd.DataFrame:
         '''
@@ -64,7 +76,13 @@ class CheckIn:
                     
         except NoSuchElementException:
             logger.debug("Checkin entry blank/not found")
-                
+            
+        except Exception:
+            logger.error(
+                "Unknown error in parsing checkin entry, saving screenshot",
+                exc_info=True
+            )
+            self.save_error_screenshot("checkin_parsing_error.png")
         
         # Check what columns we're missing and fill with null
         expected_columns = [
@@ -84,11 +102,12 @@ class CheckIn:
         return pd.DataFrame(output, index=[0]).dropna(how='all')
 
 
-class Scraper:
+class MainMapScraper:
 
     def __init__(
         self,
         save_filepath: str,
+        error_screenshot_savepath: str,
         save_every: int = 100,
         timeout: int = 3,
         page_load_pause: int = 1,
@@ -101,6 +120,7 @@ class Scraper:
         self.page_load_pause = page_load_pause
         self.use_tqdm = progress_bars
         
+        self.error_screenshot_savepath = error_screenshot_savepath
         if not os.path.exists(self.save_path):
             logger.warning("Save filpath does not exist, creating it...")
             os.makedirs(self.save_path)
@@ -132,23 +152,10 @@ class Scraper:
         self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         self.driver.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.53 Safari/537.36'})
         
-    def exit_login_dialog(self):
-        logger.info("Attempting to exit login dialog...")
-        try:
-            # Wait for the exit button
-            esc_button = self.wait.until(EC.visibility_of_element_located((
-                By.XPATH,
-                "//*[@id=\"dialogContent_authenticate\"]/button"
-            )))
-            esc_button.click()
-            logger.info("Successfully exited the login dialog!")
-
-        except (NoSuchElementException, TimeoutException):
-            logger.error("Login dialog exit button not found.")
-            self.driver.save_screenshot("selenium_login_not_found.png")
-
-        except Exception as e:
-            raise RuntimeError(f"Unknown error trying to exit login dialog: {e}")
+    def save_error_screenshot(self, filename: str):
+        filename = get_current_datetime() + filename
+        path = os.path.join(self.error_screenshot_savepath, filename)
+        self.driver.save_screenshot(path)
 
     #TODO: make logger.info into logger.debug everywhere?
     def reject_all_cookies_dialog(self):
@@ -194,7 +201,25 @@ class Scraper:
                 logger.error("Cookie banner or 'Manage Settings' link not found. Assuming cookies are not rejected.")
                 self.driver.switch_to.default_content()
                 
-    
+    def exit_login_dialog(self):
+        logger.info("Attempting to exit login dialog...")
+        try:
+            # Wait for the exit button
+            esc_button = self.wait.until(EC.visibility_of_element_located((
+                By.XPATH,
+                "//*[@id=\"dialogContent_authenticate\"]/button"
+            )))
+            esc_button.click()
+            logger.info("Successfully exited the login dialog!")
+
+        except (NoSuchElementException, TimeoutException):
+            logger.error("Login dialog exit button not found.")
+            self.save_error_screenshot("selenium_login_not_found.png")
+            
+
+        except Exception as e:
+            logger.error(f"Unknown error trying to exit login dialog, saving error screenshot for later debugging", exc_info=True)
+            self.save_error_screenshot("unknown_exit_dialog_error.png")
     
     #TODO: clean up and try to more elegantly extract things en masse
     def scrape_location(
@@ -364,6 +389,6 @@ class Scraper:
     
     
 @ray.remote(max_restarts=3, max_task_retries=3)
-class ParallelScraper(Scraper):
+class ParallelScraper(MainMapScraper):
     pass
         
