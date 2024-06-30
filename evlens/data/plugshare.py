@@ -302,10 +302,6 @@ class MainMapScraper:
             output['checkin_count'] = np.nan
 
         try: # PULL IN COMMENT TEXT
-            self.wait.until(EC.element_to_be_clickable((
-                By.XPATH,
-                "/html/body/app-root/app-theme/div/div/app-notice/app-theme/div/div/app-home/div/div[2]/app-footer/div/div/app-section-links/span/a"
-            )))
             more_comments_link = self.wait.until(EC.element_to_be_clickable((
                 By.XPATH,
                 "//*[@id=\"checkins\"]/div[2]/span[3]"

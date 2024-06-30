@@ -21,12 +21,13 @@ if __name__ == '__main__':
         ParallelMainMapScraper,
         locations,
         n_jobs=N_JOBS,
-        save_filepath = f"../data/external/plugshare/{TODAY_STRING}/",
-        error_screenshot_savepath = f"../data/external/plugshare/{TODAY_STRING}/errors/",
+        save_filepath = f"data/external/plugshare/{TODAY_STRING}/",
+        error_screenshot_savepath = f"data/external/plugshare/{TODAY_STRING}/errors/",
         timeout=5,
         headless=False,
         progress_bars=False
     )
+    
     
     assert len(results) == N_JOBS, f"Found {len(results)} batches, not the {N_JOBS} expected"
     num_locations_scraped = sum([len(e) for e in results])
