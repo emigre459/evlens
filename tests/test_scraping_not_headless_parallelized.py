@@ -1,4 +1,4 @@
-from evlens.data.plugshare import ParallelScraper
+from evlens.data.plugshare import ParallelMainMapScraper
 from evlens.concurrency import parallelized_data_processing
 
 # Electrify America in Springfield, VA mall parking lot
@@ -18,10 +18,11 @@ if __name__ == '__main__':
     
     #TODO: tune how long we need to sleep and timeout
     results = parallelized_data_processing(
-        ParallelScraper,
+        ParallelMainMapScraper,
         locations,
         n_jobs=N_JOBS,
         save_filepath = f"../data/external/plugshare/{TODAY_STRING}/",
+        error_screenshot_savepath = f"../data/external/plugshare/{TODAY_STRING}/errors/",
         timeout=5,
         headless=False,
         progress_bars=False

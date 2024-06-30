@@ -116,14 +116,19 @@ class MainMapScraper:
     ):
         self.timeout = timeout
         self.save_path = save_filepath
+        self.error_screenshot_savepath = error_screenshot_savepath
         self.save_every = save_every
         self.page_load_pause = page_load_pause
-        self.use_tqdm = progress_bars
+        self.use_tqdm = progress_bars        
         
-        self.error_screenshot_savepath = error_screenshot_savepath
+        #TODO: make this send screenshots to GCP Cloud Storage
         if not os.path.exists(self.save_path):
             logger.warning("Save filpath does not exist, creating it...")
             os.makedirs(self.save_path)
+            
+        if not os.path.exists(self.error_screenshot_savepath):
+            logger.warning("Error screenshot save filpath does not exist, creating it...")
+            os.makedirs(self.error_screenshot_savepath)
         
         self.chrome_options = Options()
         
@@ -320,7 +325,7 @@ class MainMapScraper:
             else:
                 iterator = detailed_checkins
             for checkin in iterator:
-                c = CheckIn(checkin)
+                c = CheckIn(checkin, self.error_screenshot_savepath)
                 out = c.parse()
                 if not out.empty:
                     checkin_dfs.append(out)
@@ -330,6 +335,7 @@ class MainMapScraper:
             
         except (NoSuchElementException, TimeoutException):
             logger.error("Comments error", exc_info=True)
+            df_checkins = pd.DataFrame()
             
         logger.info("Page scrape complete!")
         df_location = pd.DataFrame(output, index=[0])
@@ -393,6 +399,6 @@ class MainMapScraper:
     
     
 @ray.remote(max_restarts=3, max_task_retries=3)
-class ParallelScraper(MainMapScraper):
+class ParallelMainMapScraper(MainMapScraper):
     pass
         
