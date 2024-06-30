@@ -35,7 +35,7 @@ class CheckIn:
         self.error_screenshot_savepath = error_screenshot_savepath
         
     def save_error_screenshot(self, filename: str):
-        filename = get_current_datetime() + filename
+        filename = get_current_datetime() + '_' + filename
         path = os.path.join(self.error_screenshot_savepath, filename)
         self.element.driver.save_screenshot(path)
         
@@ -158,7 +158,7 @@ class MainMapScraper:
         self.driver.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.53 Safari/537.36'})
         
     def save_error_screenshot(self, filename: str):
-        filename = get_current_datetime() + filename
+        filename = get_current_datetime() + '_' + filename
         path = os.path.join(self.error_screenshot_savepath, filename)
         self.driver.save_screenshot(path)
 
@@ -336,6 +336,7 @@ class MainMapScraper:
         except Exception:
             logger.error("Did we get blocked from clicking More Comments?", exc_info=True)
             self.save_error_screenshot('checkins.png')
+            df_checkins = pd.DataFrame()
             
         logger.info("Page scrape complete!")
         df_location = pd.DataFrame(output, index=[0])
