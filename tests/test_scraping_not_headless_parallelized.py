@@ -30,11 +30,10 @@ if __name__ == '__main__':
         progress_bars=False
     )
     
-    
     assert len(results) == N_JOBS, f"Found {len(results)} batches, not the {N_JOBS} expected"
-    num_locations_scraped = sum([len(e) for e in results])
-    assert num_locations_scraped == LOCATION_COUNT, f"Found {num_locations_scraped} locations, not the {LOCATION_COUNT} expected"
     
-    dump(results, 'test_results.pkl')
+    # Each element is (df_locations, df_checkins)
+    num_locations_scraped = sum([len(e[0]) for e in results])
+    assert num_locations_scraped == LOCATION_COUNT, f"Found {num_locations_scraped} locations, not the {LOCATION_COUNT} expected"
     
     #TODO: add more tests to check that all data is there
