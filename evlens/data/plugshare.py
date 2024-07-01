@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import os
 import re
-from typing import Tuple
+from typing import Tuple, List
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -14,6 +14,10 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.remote.webelement import WebElement
 
+import ray
+
+from evlens import get_current_datetime
+
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
 
@@ -22,8 +26,19 @@ class CheckIn:
     '''
     Tracks all the different components of a single check-in and can return as a single-row pandas DataFrame to be used elsewhere.
     '''
-    def __init__(self, checkin_element: WebElement):
+    def __init__(
+        self,
+        checkin_element: WebElement,
+        error_screenshot_savepath: str
+    ):
         self.element = checkin_element
+        self.error_screenshot_savepath = error_screenshot_savepath
+        
+    def save_error_screenshot(self, filename: str):
+        filename = get_current_datetime() \
+            + '_' + str(os.getpid()) + '_' + filename
+        path = os.path.join(self.error_screenshot_savepath, filename)
+        self.element.driver.save_screenshot(path)
         
     def parse(self) -> pd.DataFrame:
         '''
@@ -62,7 +77,13 @@ class CheckIn:
                     
         except NoSuchElementException:
             logger.debug("Checkin entry blank/not found")
-                
+            
+        except Exception:
+            logger.error(
+                "Unknown error in parsing checkin entry, saving screenshot",
+                exc_info=True
+            )
+            self.save_error_screenshot("checkin_parsing_error.png")
         
         # Check what columns we're missing and fill with null
         expected_columns = [
@@ -82,29 +103,40 @@ class CheckIn:
         return pd.DataFrame(output, index=[0]).dropna(how='all')
 
 
-class Scraper:
+class MainMapScraper:
 
     def __init__(
         self,
         save_filepath: str,
+        error_screenshot_savepath: str,
         save_every: int = 100,
         timeout: int = 3,
         page_load_pause: int = 1,
-        headless: bool = True
+        headless: bool = True,
+        progress_bars: bool = True
     ):
         self.timeout = timeout
         self.save_path = save_filepath
+        self.error_screenshot_savepath = error_screenshot_savepath
         self.save_every = save_every
         self.page_load_pause = page_load_pause
+        self.use_tqdm = progress_bars        
         
+        #TODO: make this send screenshots to GCP Cloud Storage
         if not os.path.exists(self.save_path):
             logger.warning("Save filpath does not exist, creating it...")
             os.makedirs(self.save_path)
+            
+        if not os.path.exists(self.error_screenshot_savepath):
+            logger.warning("Error screenshot save filpath does not exist, creating it...")
+            os.makedirs(self.error_screenshot_savepath)
         
         self.chrome_options = Options()
         
-        # Removes automation infobar
+        # Removes automation infobar and other bot-looking things
         self.chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        self.chrome_options.add_experimental_option("useAutomationExtension", False)
+        self.chrome_options.add_argument("--disable-blink-features=AutomationControlled")
         
         # Run without window open
         if headless:
@@ -121,14 +153,66 @@ class Scraper:
         self.driver = webdriver.Chrome(options=self.chrome_options)
         self.wait = WebDriverWait(self.driver, self.timeout)
         
-        #TODO: get rid of these through refactor
-        self.locationlist = []
+        # Make sure we look less bot-like
+        # Thanks to https://stackoverflow.com/a/53040904/8630238
+        self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+        self.driver.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.53 Safari/537.36'})
         
+    def save_error_screenshot(self, filename: str):
+        filename = get_current_datetime() \
+            + '_' + str(os.getpid()) + '_' + filenamee
+        path = os.path.join(self.error_screenshot_savepath, filename)
+        self.driver.save_screenshot(path)
+
+    #TODO: make logger.info into logger.debug everywhere?
+    def reject_all_cookies_dialog(self):
+        try:
+            # Wait for the cookie dialog to appear
+            iframe = self.wait.until(EC.visibility_of_element_located((
+                By.ID,
+                "global-consent-notice"
+            )))        
+            logger.info("Found the cookie banner!")
+            
+            # Adapted from https://stackoverflow.com/a/21476147
+            # Pull out of main page frame so we can select a different frame (cookies)
+            logger.info("Switching to cookie dialog iframe...")
+            self.driver.switch_to.frame(iframe)
+            
+            logger.info("Selecting 'Manage Settings' link...")
+            manage_settings_link = self.wait.until(EC.element_to_be_clickable((
+                By.XPATH,
+                "/html/body/app-root/app-theme/div/div/app-notice/app-theme/div/div/app-home/div/div[2]/app-footer/div/div/app-section-links/span/a"
+            )))
+            manage_settings_link.click()
+            
+            logger.info("Clicking 'Reject All' button...")
+            reject_all_button = self.wait.until(EC.element_to_be_clickable((
+                By.XPATH,
+                "//*[@id=\"denyAll\"]"
+            )))
+            reject_all_button.click()
+            
+            logger.info("Confirming rejection...")
+            reject_all_button_confirm = self.wait.until(EC.element_to_be_clickable((
+                By.XPATH,
+                "//*[@id=\"mat-dialog-0\"]/ng-component/app-theme/div/div/div[2]/button[2]"
+            )))
+            reject_all_button_confirm.click()
+            
+            # Switch back to main frame
+            logger.info("Switching back to main page content...")
+            self.driver.switch_to.default_content()
+            
+        except (NoSuchElementException, TimeoutException) as e_cookies:
+                logger.error("Cookie banner or 'Manage Settings' link not found. Assuming cookies are not rejected.")
+                self.driver.switch_to.default_content()
+                
     def exit_login_dialog(self):
         logger.info("Attempting to exit login dialog...")
         try:
             # Wait for the exit button
-            esc_button = self.wait.until(EC.visibility_of_element_located((
+            esc_button = self.wait.until(EC.element_to_be_clickable((
                 By.XPATH,
                 "//*[@id=\"dialogContent_authenticate\"]/button"
             )))
@@ -137,54 +221,18 @@ class Scraper:
 
         except (NoSuchElementException, TimeoutException):
             logger.error("Login dialog exit button not found.")
-            self.driver.save_screenshot("selenium_login_not_found.png")
+            self.save_error_screenshot("selenium_login_not_found.png")
+            
 
         except Exception as e:
-            raise RuntimeError(f"Unknown error trying to exit login dialog: {e}")
-
-    #TODO: make logger.info into logger.debug everywhere?
-    def reject_all_cookies_dialog(self):
-        # Wait for the cookie dialog to appear
-        iframe = self.wait.until(EC.visibility_of_element_located((
-            By.ID,
-            "global-consent-notice"
-        )))        
-        logger.info("Found the cookie banner!")
-        
-        # Adapted from https://stackoverflow.com/a/21476147
-        # Pull out of main page frame so we can select a different frame (cookies)
-        logger.info("Switching to cookie dialog iframe...")
-        self.driver.switch_to.frame(iframe)
-        
-        logger.info("Selecting 'Manage Settings' link...")
-        manage_settings_link = self.wait.until(EC.element_to_be_clickable((
-            By.XPATH,
-            "/html/body/app-root/app-theme/div/div/app-notice/app-theme/div/div/app-home/div/div[2]/app-footer/div/div/app-section-links/span/a"
-        )))
-        manage_settings_link.click()
-        
-        logger.info("Clicking 'Reject All' button...")
-        reject_all_button = self.wait.until(EC.element_to_be_clickable((
-            By.XPATH,
-            "//*[@id=\"denyAll\"]"
-        )))
-        reject_all_button.click()
-        
-        logger.info("Confirming rejection...")
-        reject_all_button_confirm = self.wait.until(EC.element_to_be_clickable((
-            By.XPATH,
-            "//*[@id=\"mat-dialog-0\"]/ng-component/app-theme/div/div/div[2]/button[2]"
-        )))
-        reject_all_button_confirm.click()
-        
-        # Switch back to main frame
-        logger.info("Switching back to main page content...")
-        self.driver.switch_to.default_content()
-    
+            logger.error(f"Unknown error trying to exit login dialog, saving error screenshot for later debugging", exc_info=True)
+            self.save_error_screenshot("unknown_exit_dialog_error.png")
     
     #TODO: clean up and try to more elegantly extract things en masse
-    #TODO: use fewer attributes for data maintenance
-    def scrape_location(self, location_id: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def scrape_location(
+        self,
+        location_id: int
+        ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         '''
         Scrapes a single location (single webpage)
 
@@ -256,10 +304,10 @@ class Scraper:
             output['checkin_count'] = np.nan
 
         try: # PULL IN COMMENT TEXT
-            more_comments_link = self.driver.find_element(
+            more_comments_link = self.wait.until(EC.element_to_be_clickable((
                 By.XPATH,
                 "//*[@id=\"checkins\"]/div[2]/span[3]"
-            )
+            )))
             more_comments_link.click()
             
             detailed_checkins = self.driver.find_element(
@@ -270,8 +318,12 @@ class Scraper:
             self.detailed_checkins = detailed_checkins
             
             checkin_dfs = []
-            for checkin in tqdm(detailed_checkins, desc="Parsing checkins for location"):
-                c = CheckIn(checkin)
+            if self.use_tqdm:
+                iterator = tqdm(detailed_checkins, desc="Parsing checkins for location")
+            else:
+                iterator = detailed_checkins
+            for checkin in iterator:
+                c = CheckIn(checkin, self.error_screenshot_savepath)
                 out = c.parse()
                 if not out.empty:
                     checkin_dfs.append(out)
@@ -281,6 +333,12 @@ class Scraper:
             
         except (NoSuchElementException, TimeoutException):
             logger.error("Comments error", exc_info=True)
+            df_checkins = pd.DataFrame()
+            
+        except Exception:
+            logger.error("Did we get blocked from clicking More Comments?", exc_info=True)
+            self.save_error_screenshot('checkins.png')
+            df_checkins = pd.DataFrame()
             
         logger.info("Page scrape complete!")
         df_location = pd.DataFrame(output, index=[0])
@@ -291,35 +349,33 @@ class Scraper:
             df_checkins
         )
         
-    #TODO: add in saving to disk at X pages (pickle for now)
-    def run(self, start_location, end_location):
+    def run(self, locations: List[int]) -> Tuple[pd.DataFrame, pd.DataFrame]:
         logger.info("Beginning scraping!")
+        
+        # Have to maximize to see all links...weirdly
+        self.driver.maximize_window()
 
         all_locations = []
         all_checkins = []
-        for i, location_id in enumerate(tqdm(
-            range(start_location, end_location+1),
-            desc="Parsing stations"
-        )):
-            self.locationlist.append(location_id)
+        if self.use_tqdm:
+            iterator = enumerate(tqdm(
+                locations,
+                desc="Parsing stations"
+            ))
+        else:
+            iterator = enumerate(locations)
+            
+        for i, location_id in iterator:
             url = f"https://www.plugshare.com/location/{location_id}"
             self.driver.get(url)
-            
-            # Have to maximize to see all links...weirdly
-            self.driver.maximize_window()
 
-            try:
-                self.reject_all_cookies_dialog()
-                
-            except (NoSuchElementException, TimeoutException) as e_cookies:
-                logger.error("Cookie banner or 'Manage Settings' link not found. Assuming cookies are not rejected.")
-                
-            # TODO: try-except here
+            self.reject_all_cookies_dialog()                
             self.exit_login_dialog()
             df_location, df_checkins = self.scrape_location(location_id)
             all_locations.append(df_location)
             all_checkins.append(df_checkins)
             
+            #TODO: replace this saving logic (and the final save logic) with on-the-fly database saves
             if i+1 % self.save_every == 0:
                 logger.info(f"Saving checkpoint at location {i}")
                 
@@ -335,7 +391,6 @@ class Scraper:
 
         self.driver.quit()
         
-        #TODO: add station location integers as column
         df_all_locations = pd.concat(all_locations, ignore_index=True)
         df_all_locations.to_pickle(self.save_path + f"df_all_locations.pkl")
         
@@ -344,3 +399,9 @@ class Scraper:
         
         logger.info("Scraping complete!")
         return df_all_locations, df_all_checkins
+    
+    
+@ray.remote(max_restarts=3, max_task_retries=3)
+class ParallelMainMapScraper(MainMapScraper):
+    pass
+        
