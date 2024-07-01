@@ -212,7 +212,7 @@ class MainMapScraper:
         logger.info("Attempting to exit login dialog...")
         try:
             # Wait for the exit button
-            esc_button = self.wait.until(EC.visibility_of_element_located((
+            esc_button = self.wait.until(EC.element_to_be_clickable((
                 By.XPATH,
                 "//*[@id=\"dialogContent_authenticate\"]/button"
             )))
