@@ -1,5 +1,4 @@
 import time
-from tqdm import tqdm
 import pandas as pd
 import numpy as np
 import os
@@ -14,9 +13,11 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.remote.webelement import WebElement
 
+from tqdm import tqdm
 import ray
 
 from evlens import get_current_datetime
+from evlens.data.google_cloud import upload_file
 
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
@@ -29,16 +30,32 @@ class CheckIn:
     def __init__(
         self,
         checkin_element: WebElement,
-        error_screenshot_savepath: str
+        error_screenshot_savepath: str = None,
+        error_screenshot_save_bucket: str = 'plugshare_scraping'
     ):
         self.element = checkin_element
         self.error_screenshot_savepath = error_screenshot_savepath
+        self.error_screenshot_save_bucket = error_screenshot_save_bucket
         
     def save_error_screenshot(self, filename: str):
         filename = get_current_datetime() \
             + '_' + str(os.getpid()) + '_' + filename
-        path = os.path.join(self.error_screenshot_savepath, filename)
-        self.element.driver.save_screenshot(path)
+            
+        if self.error_screenshot_savepath is not None:
+            path = os.path.join(self.error_screenshot_savepath, filename)
+            self.element.driver.save_screenshot(path)
+        elif self.error_screenshot_save_bucket is not None: 
+            self.element.driver.save_screenshot(filename)
+            upload_file(
+                self.error_screenshot_save_bucket,
+                filename,
+                "errors/" + filename
+            )
+            os.remove(filename)
+        else:
+            logger.error(
+                "No savepath or GCP bucket provided for error screenshot."
+                )
         
     def parse(self) -> pd.DataFrame:
         '''
@@ -108,7 +125,8 @@ class MainMapScraper:
     def __init__(
         self,
         save_filepath: str,
-        error_screenshot_savepath: str,
+        error_screenshot_savepath: str = None,
+        error_screenshot_save_bucket: str = 'plugshare_scraping',
         save_every: int = 100,
         timeout: int = 3,
         page_load_pause: int = 1,
@@ -118,6 +136,7 @@ class MainMapScraper:
         self.timeout = timeout
         self.save_path = save_filepath
         self.error_screenshot_savepath = error_screenshot_savepath
+        self.error_screenshot_save_bucket = error_screenshot_save_bucket
         self.save_every = save_every
         self.page_load_pause = page_load_pause
         self.use_tqdm = progress_bars        
@@ -126,10 +145,12 @@ class MainMapScraper:
         if not os.path.exists(self.save_path):
             logger.warning("Save filpath does not exist, creating it...")
             os.makedirs(self.save_path)
-            
-        if not os.path.exists(self.error_screenshot_savepath):
-            logger.warning("Error screenshot save filpath does not exist, creating it...")
-            os.makedirs(self.error_screenshot_savepath)
+        
+        if self.error_screenshot_savepath is not None:    
+            if not os.path.exists(self.error_screenshot_savepath):
+                logger.warning("Error screenshot save filpath does not exist, creating it...")
+                os.makedirs(self.error_screenshot_savepath)
+                
         
         self.chrome_options = Options()
         
@@ -160,9 +181,23 @@ class MainMapScraper:
         
     def save_error_screenshot(self, filename: str):
         filename = get_current_datetime() \
-            + '_' + str(os.getpid()) + '_' + filenamee
-        path = os.path.join(self.error_screenshot_savepath, filename)
-        self.driver.save_screenshot(path)
+            + '_' + str(os.getpid()) + '_' + filename
+            
+        if self.error_screenshot_savepath is not None:
+            path = os.path.join(self.error_screenshot_savepath, filename)
+            self.driver.save_screenshot(path)
+        elif self.error_screenshot_save_bucket is not None: 
+            self.driver.save_screenshot(filename)
+            upload_file(
+                self.error_screenshot_save_bucket,
+                filename,
+                "errors/" + filename
+            )
+            os.remove(filename)
+        else:
+            logger.error(
+                "No savepath or GCP bucket provided for error screenshot."
+                )
 
     #TODO: make logger.info into logger.debug everywhere?
     def reject_all_cookies_dialog(self):
