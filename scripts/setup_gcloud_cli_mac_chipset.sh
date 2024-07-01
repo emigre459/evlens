@@ -13,3 +13,4 @@ cat ~/.bashrc_gcloud >> ~/.bash_profile
 
 echo "You need to open a new terminal shell for the changes to take effect"
 echo "After opening a new shell, run 'gcloud init' to configure the Google Cloud SDK"
+echo "After that, ensure your code can interact with GCP by running 'gcloud auth application-default login'"
