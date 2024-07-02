@@ -1,7 +1,10 @@
+from google.cloud import storage
+from google.cloud import bigquery
+import pandas as pd
+import numpy as np
+
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
-
-from google.cloud import storage
 
 
 # Adapted from https://cloud.google.com/storage/docs/uploading-objects#storage-upload-object-python
@@ -80,3 +83,9 @@ def download_blob(
         destination_file_name
     )
 
+
+def bigquery_to_dataframe(query: str) -> pd.DataFrame:
+    
+    client = bigquery.Client()
+    df = client.query_and_wait(query).to_dataframe()
+    return df.replace({None: np.nan}).dropna(how='all')
