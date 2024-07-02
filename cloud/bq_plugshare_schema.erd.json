@@ -1,0 +1,243 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dineug/erd-editor/main/json-schema/schema.json",
+  "version": "3.0.0",
+  "settings": {
+    "width": 2000,
+    "height": 2000,
+    "scrollTop": -59,
+    "scrollLeft": 0,
+    "zoomLevel": 1,
+    "show": 431,
+    "database": 4,
+    "databaseName": "",
+    "canvasType": "ERD",
+    "language": 1,
+    "tableNameCase": 4,
+    "columnNameCase": 2,
+    "bracketType": 1,
+    "relationshipDataTypeSync": true,
+    "relationshipOptimization": false,
+    "columnOrder": [
+      1,
+      2,
+      4,
+      8,
+      16,
+      32,
+      64
+    ],
+    "maxWidthComment": -1,
+    "ignoreSaveSettings": 0
+  },
+  "doc": {
+    "tableIds": [
+      "N8_On1WeE7gSKK49n4EaC"
+    ],
+    "relationshipIds": [],
+    "indexIds": [],
+    "memoIds": []
+  },
+  "collections": {
+    "tableEntities": {
+      "N8_On1WeE7gSKK49n4EaC": {
+        "id": "N8_On1WeE7gSKK49n4EaC",
+        "name": "location_ids",
+        "comment": "Grabbed via the developer map to find integer location IDs in the USA only for public charging stations",
+        "columnIds": [
+          "diNt5F1wBookf-qswZhmD",
+          "b9GfodsXcBApNpH_htG_X",
+          "jJsygDdq3RozAKxo8Kje1",
+          "zOUEU0I-LTyd6iWYmVIxm",
+          "rb4kyEALukdb5yBoedMSs"
+        ],
+        "seqColumnIds": [
+          "diNt5F1wBookf-qswZhmD",
+          "b9GfodsXcBApNpH_htG_X",
+          "jJsygDdq3RozAKxo8Kje1",
+          "zOUEU0I-LTyd6iWYmVIxm",
+          "rb4kyEALukdb5yBoedMSs"
+        ],
+        "ui": {
+          "x": 30,
+          "y": 227,
+          "zIndex": 2,
+          "widthName": 70,
+          "widthComment": 580,
+          "color": ""
+        },
+        "meta": {
+          "updateAt": 1719938081031,
+          "createAt": 1719937564388
+        }
+      }
+    },
+    "tableColumnEntities": {
+      "diNt5F1wBookf-qswZhmD": {
+        "id": "diNt5F1wBookf-qswZhmD",
+        "tableId": "N8_On1WeE7gSKK49n4EaC",
+        "name": "id",
+        "comment": "PK",
+        "dataType": "INTEGER",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1719937652474,
+          "createAt": 1719937621856
+        }
+      },
+      "b9GfodsXcBApNpH_htG_X": {
+        "id": "b9GfodsXcBApNpH_htG_X",
+        "tableId": "N8_On1WeE7gSKK49n4EaC",
+        "name": "parsed_datetime",
+        "comment": "",
+        "dataType": "DATETIME",
+        "default": "CURRENT_DATETIME",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 97,
+          "widthComment": 60,
+          "widthDataType": 61,
+          "widthDefault": 124
+        },
+        "meta": {
+          "updateAt": 1719937852685,
+          "createAt": 1719937656307
+        }
+      },
+      "jJsygDdq3RozAKxo8Kje1": {
+        "id": "jJsygDdq3RozAKxo8Kje1",
+        "tableId": "N8_On1WeE7gSKK49n4EaC",
+        "name": "plug_types_searched",
+        "comment": "Semicolon-delimited list of strings as a single string for simplicity",
+        "dataType": "STRING",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 124,
+          "widthComment": 370,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1719938000638,
+          "createAt": 1719937870951
+        }
+      },
+      "zOUEU0I-LTyd6iWYmVIxm": {
+        "id": "zOUEU0I-LTyd6iWYmVIxm",
+        "tableId": "N8_On1WeE7gSKK49n4EaC",
+        "name": "location_id",
+        "comment": "Plugshare-specific unique ID for a charging station/location. STR for zero padding reasons",
+        "dataType": "STRING",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 64,
+          "widthComment": 512,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1719938077827,
+          "createAt": 1719938003724
+        }
+      },
+      "rb4kyEALukdb5yBoedMSs": {
+        "id": "rb4kyEALukdb5yBoedMSs",
+        "tableId": "N8_On1WeE7gSKK49n4EaC",
+        "name": "",
+        "comment": "",
+        "dataType": "",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1719938081031,
+          "createAt": 1719938081031
+        }
+      }
+    },
+    "relationshipEntities": {},
+    "indexEntities": {},
+    "indexColumnEntities": {},
+    "memoEntities": {}
+  },
+  "lww": {
+    "N8_On1WeE7gSKK49n4EaC": [
+      "tableEntities",
+      1719937564387,
+      -1,
+      {
+        "name": 1719937590547,
+        "comment": 1719937616941
+      }
+    ],
+    "diNt5F1wBookf-qswZhmD": [
+      "tableColumnEntities",
+      1719937621856,
+      -1,
+      {
+        "name": 1719937625777,
+        "options(notNull)": 1719937633495,
+        "default": 1719937648379,
+        "dataType": 1719937645703,
+        "comment": 1719937652473
+      }
+    ],
+    "b9GfodsXcBApNpH_htG_X": [
+      "tableColumnEntities",
+      1719937656306,
+      -1,
+      {
+        "name": 1719937832248,
+        "dataType": 1719937838561,
+        "options(notNull)": 1719937842129,
+        "default": 1719937852685
+      }
+    ],
+    "jJsygDdq3RozAKxo8Kje1": [
+      "tableColumnEntities",
+      1719937870950,
+      -1,
+      {
+        "name": 1719937896027,
+        "dataType": 1719937975836,
+        "options(notNull)": 1719937980233,
+        "comment": 1719938000637
+      }
+    ],
+    "zOUEU0I-LTyd6iWYmVIxm": [
+      "tableColumnEntities",
+      1719938003723,
+      -1,
+      {
+        "name": 1719938016827,
+        "dataType": 1719938023356,
+        "options(notNull)": 1719938028326,
+        "comment": 1719938077825
+      }
+    ],
+    "rb4kyEALukdb5yBoedMSs": [
+      "tableColumnEntities",
+      1719938081031,
+      -1,
+      {}
+    ]
+  }
+}
