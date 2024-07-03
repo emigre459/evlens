@@ -4,8 +4,8 @@
   "settings": {
     "width": 2000,
     "height": 2000,
-    "scrollTop": -428.2518,
-    "scrollLeft": -1,
+    "scrollTop": -511.2518,
+    "scrollLeft": -242,
     "zoomLevel": 0.75,
     "show": 511,
     "database": 4,
@@ -36,8 +36,8 @@
       "h3Ou1BAvlBfDnQw0NIomn"
     ],
     "relationshipIds": [
-      "HwHXC2KSmM5ksCJ163_Xs",
-      "vq5qcm_h86MTm-ovVAYqt"
+      "vq5qcm_h86MTm-ovVAYqt",
+      "qKU1RopncufiGuedXSrnE"
     ],
     "indexIds": [],
     "memoIds": [
@@ -57,7 +57,8 @@
           "jJsygDdq3RozAKxo8Kje1",
           "zOUEU0I-LTyd6iWYmVIxm",
           "rb4kyEALukdb5yBoedMSs",
-          "0DyUREHrXNeHRobF1GVBK"
+          "0DyUREHrXNeHRobF1GVBK",
+          "tw8IezFoI2u0x6dujtAIG"
         ],
         "seqColumnIds": [
           "diNt5F1wBookf-qswZhmD",
@@ -67,7 +68,8 @@
           "rb4kyEALukdb5yBoedMSs",
           "0DyUREHrXNeHRobF1GVBK",
           "ezMbP-A4cqSwGgjr3sp13",
-          "yUarwdhbq99CUyEHBPC9v"
+          "yUarwdhbq99CUyEHBPC9v",
+          "tw8IezFoI2u0x6dujtAIG"
         ],
         "ui": {
           "x": 159,
@@ -78,7 +80,7 @@
           "color": ""
         },
         "meta": {
-          "updateAt": 1720040353134,
+          "updateAt": 1720040674120,
           "createAt": 1719937564388
         }
       },
@@ -94,7 +96,7 @@
           "SGXDlfGicxO6qGtMi3YTT",
           "q4_iFc0E2Sozibs0cQIDP",
           "rh8gQzZqwsg8r17WrFDP-",
-          "IelgDsEpCUpdrSIRdlN40"
+          "vqxuDZtEYr3oirtDfRgJD"
         ],
         "seqColumnIds": [
           "sYZScIerEu_SgTFJHhAfw",
@@ -106,7 +108,8 @@
           "rh8gQzZqwsg8r17WrFDP-",
           "1EiKfxBtwdePYdNKFuvKl",
           "D2dIch7GoFMVWY8uMY-q9",
-          "IelgDsEpCUpdrSIRdlN40"
+          "IelgDsEpCUpdrSIRdlN40",
+          "vqxuDZtEYr3oirtDfRgJD"
         ],
         "ui": {
           "x": 169.6666,
@@ -117,7 +120,7 @@
           "color": ""
         },
         "meta": {
-          "updateAt": 1720040473807,
+          "updateAt": 1720040749848,
           "createAt": 1719938470040
         }
       },
@@ -226,19 +229,19 @@
         "id": "zOUEU0I-LTyd6iWYmVIxm",
         "tableId": "N8_On1WeE7gSKK49n4EaC",
         "name": "location_id",
-        "comment": "PK. Plugshare-specific unique ID for a charging station/location. STR for zero padding reasons",
+        "comment": "Plugshare-specific unique ID for a charging station/location. STR for zero padding reasons",
         "dataType": "STRING",
         "default": "",
-        "options": 14,
+        "options": 12,
         "ui": {
-          "keys": 1,
+          "keys": 0,
           "widthName": 64,
-          "widthComment": 534,
+          "widthComment": 512,
           "widthDataType": 60,
           "widthDefault": 60
         },
         "meta": {
-          "updateAt": 1719938624817,
+          "updateAt": 1720040885909,
           "createAt": 1719938003724
         }
       },
@@ -329,7 +332,7 @@
         "comment": "Station name",
         "dataType": "STRING",
         "default": "",
-        "options": 8,
+        "options": 0,
         "ui": {
           "keys": 0,
           "widthName": 60,
@@ -338,7 +341,7 @@
           "widthDefault": 60
         },
         "meta": {
-          "updateAt": 1719938723949,
+          "updateAt": 1720044104723,
           "createAt": 1719938698759
         }
       },
@@ -367,7 +370,7 @@
         "tableId": "8e22coNKukyWVpw1P5X5h",
         "name": "plugscore",
         "comment": "PlugShare-derived score for station quality. ",
-        "dataType": "INTEGER",
+        "dataType": "FLOAT",
         "default": "",
         "options": 0,
         "ui": {
@@ -378,7 +381,7 @@
           "widthDefault": 60
         },
         "meta": {
-          "updateAt": 1719938804059,
+          "updateAt": 1720044259045,
           "createAt": 1719938767406
         }
       },
@@ -386,19 +389,19 @@
         "id": "SGXDlfGicxO6qGtMi3YTT",
         "tableId": "8e22coNKukyWVpw1P5X5h",
         "name": "wattage",
-        "comment": "Max power transfer claimed by station in watts",
-        "dataType": "FLOAT",
+        "comment": "Power transfer (sometimes a range) claimed by station in watts",
+        "dataType": "STRING",
         "default": "",
         "options": 0,
         "ui": {
           "keys": 0,
           "widthName": 60,
-          "widthComment": 265,
+          "widthComment": 358,
           "widthDataType": 60,
           "widthDefault": 60
         },
         "meta": {
-          "updateAt": 1719939032870,
+          "updateAt": 1720044275065,
           "createAt": 1719938999463
         }
       },
@@ -691,14 +694,14 @@
         "default": "",
         "options": 8,
         "ui": {
-          "keys": 2,
+          "keys": 0,
           "widthName": 64,
           "widthComment": 533,
           "widthDataType": 60,
           "widthDefault": 60
         },
         "meta": {
-          "updateAt": 1720040396590,
+          "updateAt": 1720040702656,
           "createAt": 1720040387292
         }
       },
@@ -720,6 +723,46 @@
         "meta": {
           "updateAt": 1720040510674,
           "createAt": 1720040489213
+        }
+      },
+      "tw8IezFoI2u0x6dujtAIG": {
+        "id": "tw8IezFoI2u0x6dujtAIG",
+        "tableId": "N8_On1WeE7gSKK49n4EaC",
+        "name": "id",
+        "comment": "PK",
+        "dataType": "STRING",
+        "default": "",
+        "options": 10,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1720040687342,
+          "createAt": 1720040674120
+        }
+      },
+      "vqxuDZtEYr3oirtDfRgJD": {
+        "id": "vqxuDZtEYr3oirtDfRgJD",
+        "tableId": "8e22coNKukyWVpw1P5X5h",
+        "name": "location_id",
+        "comment": "FK to location_ids table",
+        "dataType": "STRING",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 2,
+          "widthName": 64,
+          "widthComment": 135,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1720040746860,
+          "createAt": 1720040731535
         }
       }
     },
@@ -818,8 +861,8 @@
           "columnIds": [
             "zOUEU0I-LTyd6iWYmVIxm"
           ],
-          "x": 670.5,
-          "y": 241.6667,
+          "x": 670,
+          "y": 265.6667,
           "direction": 8
         },
         "end": {
@@ -846,7 +889,7 @@
           "columnIds": [
             "sYZScIerEu_SgTFJHhAfw"
           ],
-          "x": 627.6666,
+          "x": 540.1666,
           "y": 713.3333,
           "direction": 8
         },
@@ -862,6 +905,34 @@
         "meta": {
           "updateAt": 1720040489213,
           "createAt": 1720040489213
+        }
+      },
+      "qKU1RopncufiGuedXSrnE": {
+        "id": "qKU1RopncufiGuedXSrnE",
+        "identification": false,
+        "relationshipType": 8,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "N8_On1WeE7gSKK49n4EaC",
+          "columnIds": [
+            "tw8IezFoI2u0x6dujtAIG"
+          ],
+          "x": 659.5,
+          "y": 265.6667,
+          "direction": 8
+        },
+        "end": {
+          "tableId": "8e22coNKukyWVpw1P5X5h",
+          "columnIds": [
+            "vqxuDZtEYr3oirtDfRgJD"
+          ],
+          "x": 540.1666,
+          "y": 465.3333,
+          "direction": 4
+        },
+        "meta": {
+          "updateAt": 1720040731535,
+          "createAt": 1720040731535
         }
       }
     },
@@ -972,9 +1043,9 @@
         "name": 1719938016827,
         "dataType": 1719938023356,
         "options(notNull)": 1719938028326,
-        "comment": 1719938624816,
+        "comment": 1720040885900,
         "options(unique)": 1719938453429,
-        "options(primaryKey)": 1719938618262
+        "options(primaryKey)": 1720040692290
       }
     ],
     "rb4kyEALukdb5yBoedMSs": [
@@ -1050,7 +1121,7 @@
       {
         "name": 1719938707572,
         "dataType": 1719938709190,
-        "options(notNull)": 1719938711271,
+        "options(notNull)": 1720044104721,
         "comment": 1719938723949
       }
     ],
@@ -1071,7 +1142,7 @@
       -1,
       {
         "name": 1719938777261,
-        "dataType": 1719938784611,
+        "dataType": 1720044259041,
         "comment": 1719938804058
       }
     ],
@@ -1089,8 +1160,8 @@
       -1,
       {
         "name": 1719939001026,
-        "dataType": 1719939011191,
-        "comment": 1719939032869
+        "dataType": 1720044262546,
+        "comment": 1720044275056
       }
     ],
     "q4_iFc0E2Sozibs0cQIDP": [
@@ -1278,7 +1349,7 @@
     "IelgDsEpCUpdrSIRdlN40": [
       "tableColumnEntities",
       1720040387290,
-      -1,
+      1720040749848,
       {
         "options(notNull)": 1720040387290,
         "name": 1720040387290,
@@ -1290,7 +1361,7 @@
     "HwHXC2KSmM5ksCJ163_Xs": [
       "relationshipEntities",
       1720040387290,
-      -1,
+      1720040702652,
       {}
     ],
     "KuVL3E-PHnwHfXe8COPxb": [
@@ -1308,6 +1379,36 @@
     "vq5qcm_h86MTm-ovVAYqt": [
       "relationshipEntities",
       1720040489212,
+      -1,
+      {}
+    ],
+    "tw8IezFoI2u0x6dujtAIG": [
+      "tableColumnEntities",
+      1720040674115,
+      -1,
+      {
+        "name": 1720040677016,
+        "dataType": 1720040678978,
+        "options(notNull)": 1720040680382,
+        "comment": 1720040683453,
+        "options(primaryKey)": 1720040687340
+      }
+    ],
+    "vqxuDZtEYr3oirtDfRgJD": [
+      "tableColumnEntities",
+      1720040731533,
+      -1,
+      {
+        "options(notNull)": 1720040731533,
+        "name": 1720040739498,
+        "dataType": 1720040731533,
+        "default": 1720040731533,
+        "comment": 1720040746860
+      }
+    ],
+    "qKU1RopncufiGuedXSrnE": [
+      "relationshipEntities",
+      1720040731533,
       -1,
       {}
     ]

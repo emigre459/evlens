@@ -1,0 +1,50 @@
+[
+    {
+      "name": "id",
+      "type": "STRING",
+      "mode": "REQUIRED",
+      "description": "Primary key of table (UUID4)"
+    },
+    {
+      "name": "name",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Charging station/location name"
+    },
+    {
+      "name": "address",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Plaintext address of station"
+    },
+    {
+      "name": "plugscore",
+      "type": "FLOAT",
+      "mode": "NULLABLE",
+      "description": "PlugShare-derived score of station quality"
+    },
+    {
+      "name": "wattage",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Power transfer (sometimes a range) claimed by station in watts"
+    },
+    {
+      "name": "service_hours",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Plaintext description of when station is open"
+    },
+    {
+      "name": "checkin_count",
+      "type": "INT64",
+      "mode": "NULLABLE",
+      "description": "Number of customer check-ins for this station tracked by PlugShare"
+    },
+    {
+      "name": "location_id",
+      "type": "STRING",
+      "mode": "REQUIRED",
+      "description": "FK to location_ids table"
+    }
+  ]

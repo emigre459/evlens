@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import os
 import re
-from typing import Tuple, List
+from typing import Tuple, List, Union
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -299,7 +299,7 @@ class MainMapScraper:
         
         try: ## FIND STATION RATING
             
-            output['plugscore'] = self.driver.find_element(By.XPATH, "//*[@id=\"plugscore\"]").text
+            output['plugscore'] = float(self.driver.find_element(By.XPATH, "//*[@id=\"plugscore\"]").text)
             
         except (NoSuchElementException, TimeoutException):
             logger.error("Station rating error", exc_info=True)
@@ -322,7 +322,7 @@ class MainMapScraper:
             output['service_hours'] = np.nan
 
         try: # Get total check-in counts
-            def _get_checkin_count(text):
+            def _get_checkin_count(text) -> Union[np.nan, int]:
                 match = re.search(r"\(\s*(\d+)\s*\)", text)
                 if match:
                     return int(match.group(1))
