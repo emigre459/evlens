@@ -1,0 +1,50 @@
+[
+    {
+      "name": "id",
+      "type": "STRING",
+      "mode": "REQUIRED",
+      "description": "Primary key of table (UUID4)"
+    },
+    {
+      "name": "date",
+      "type": "DATE",
+      "mode": "REQUIRED",
+      "description": "Date of the check-in"
+    },
+    {
+      "name": "car",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Type of car used for charging at the time of check-in"
+    },
+    {
+      "name": "problem",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Chosen problem from a pre-defined list of options"
+    },
+    {
+      "name": "connector_type",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Type of plug connector used during session"
+    },
+    {
+      "name": "charge_power_kilowatts",
+      "type": "INT64",
+      "mode": "NULLABLE",
+      "description": "Power in kilowatts (likely max) reported during charging session"
+    },
+    {
+      "name": "comment",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Check-in free text"
+    },
+    {
+      "name": "station_id",
+      "type": "STRING",
+      "mode": "REQUIRED",
+      "description": "FK to stations table, UUID4"
+    }
+  ]
