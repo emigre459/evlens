@@ -1,0 +1,1181 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dineug/erd-editor/main/json-schema/schema.json",
+  "version": "3.0.0",
+  "settings": {
+    "width": 2000,
+    "height": 2000,
+    "scrollTop": -410.5374,
+    "scrollLeft": -528.375,
+    "zoomLevel": 0.75,
+    "show": 511,
+    "database": 4,
+    "databaseName": "plugshare_data",
+    "canvasType": "ERD",
+    "language": 1,
+    "tableNameCase": 4,
+    "columnNameCase": 2,
+    "bracketType": 1,
+    "relationshipDataTypeSync": true,
+    "relationshipOptimization": false,
+    "columnOrder": [
+      1,
+      2,
+      4,
+      8,
+      16,
+      32,
+      64
+    ],
+    "maxWidthComment": -1,
+    "ignoreSaveSettings": 0
+  },
+  "doc": {
+    "tableIds": [
+      "N8_On1WeE7gSKK49n4EaC",
+      "8e22coNKukyWVpw1P5X5h",
+      "h3Ou1BAvlBfDnQw0NIomn"
+    ],
+    "relationshipIds": [
+      "RNCn6GkmufJ7LfnRUPHdq",
+      "PGEGgcRV4_iXke8WKxQ8w"
+    ],
+    "indexIds": [],
+    "memoIds": [
+      "1EnCumqUxpZAWzB8BMFpb",
+      "8z9Eqgopt0jAF8J74_RmA",
+      "XXDENiKD97I1PoLLkzeMz"
+    ]
+  },
+  "collections": {
+    "tableEntities": {
+      "N8_On1WeE7gSKK49n4EaC": {
+        "id": "N8_On1WeE7gSKK49n4EaC",
+        "name": "location_ids",
+        "comment": "Grabbed via the developer map to find integer location IDs in the USA only for public charging stations",
+        "columnIds": [
+          "b9GfodsXcBApNpH_htG_X",
+          "jJsygDdq3RozAKxo8Kje1",
+          "zOUEU0I-LTyd6iWYmVIxm",
+          "rb4kyEALukdb5yBoedMSs",
+          "0DyUREHrXNeHRobF1GVBK"
+        ],
+        "seqColumnIds": [
+          "diNt5F1wBookf-qswZhmD",
+          "b9GfodsXcBApNpH_htG_X",
+          "jJsygDdq3RozAKxo8Kje1",
+          "zOUEU0I-LTyd6iWYmVIxm",
+          "rb4kyEALukdb5yBoedMSs",
+          "0DyUREHrXNeHRobF1GVBK",
+          "ezMbP-A4cqSwGgjr3sp13",
+          "yUarwdhbq99CUyEHBPC9v"
+        ],
+        "ui": {
+          "x": 49.6667,
+          "y": 461.6667,
+          "zIndex": 2,
+          "widthName": 70,
+          "widthComment": 580,
+          "color": ""
+        },
+        "meta": {
+          "updateAt": 1720039649256,
+          "createAt": 1719937564388
+        }
+      },
+      "8e22coNKukyWVpw1P5X5h": {
+        "id": "8e22coNKukyWVpw1P5X5h",
+        "name": "locations",
+        "comment": "Data about individual charging stations",
+        "columnIds": [
+          "sYZScIerEu_SgTFJHhAfw",
+          "AeqbChIePwQts96lCtJJH",
+          "D8PGxpH4RZAGv2eugtcaU",
+          "3LaKLELoakvyDizdrxVM3",
+          "SGXDlfGicxO6qGtMi3YTT",
+          "q4_iFc0E2Sozibs0cQIDP",
+          "rh8gQzZqwsg8r17WrFDP-",
+          "D2dIch7GoFMVWY8uMY-q9"
+        ],
+        "seqColumnIds": [
+          "sYZScIerEu_SgTFJHhAfw",
+          "AeqbChIePwQts96lCtJJH",
+          "D8PGxpH4RZAGv2eugtcaU",
+          "3LaKLELoakvyDizdrxVM3",
+          "SGXDlfGicxO6qGtMi3YTT",
+          "q4_iFc0E2Sozibs0cQIDP",
+          "rh8gQzZqwsg8r17WrFDP-",
+          "1EiKfxBtwdePYdNKFuvKl",
+          "D2dIch7GoFMVWY8uMY-q9"
+        ],
+        "ui": {
+          "x": 221.6666,
+          "y": 67.9999,
+          "zIndex": 170,
+          "widthName": 60,
+          "widthComment": 222,
+          "color": ""
+        },
+        "meta": {
+          "updateAt": 1720039665201,
+          "createAt": 1719938470040
+        }
+      },
+      "h3Ou1BAvlBfDnQw0NIomn": {
+        "id": "h3Ou1BAvlBfDnQw0NIomn",
+        "name": "checkins",
+        "comment": "Check-in data we have pulled for different charging locations",
+        "columnIds": [
+          "rER9mihbjv7SKIh4Vcv8d",
+          "Xx8-lO2nJR-RXebBEVTVC",
+          "pJMTGzFyPpjTsO8MJ948R",
+          "SEE1nriJ5Cb1V6od_IRK_",
+          "ttagxGX5_ygAe6BJWT7WO",
+          "y8U8m2a3pnlz4KSkZ24Rd",
+          "lh6-u9AzGMdjZr56fxo_A",
+          "gnuKnXyC773jegICAKLyr"
+        ],
+        "seqColumnIds": [
+          "rER9mihbjv7SKIh4Vcv8d",
+          "Xx8-lO2nJR-RXebBEVTVC",
+          "pJMTGzFyPpjTsO8MJ948R",
+          "SEE1nriJ5Cb1V6od_IRK_",
+          "ttagxGX5_ygAe6BJWT7WO",
+          "y8U8m2a3pnlz4KSkZ24Rd",
+          "lh6-u9AzGMdjZr56fxo_A",
+          "-9zTQWdEbwlIf059VRlVV",
+          "gnuKnXyC773jegICAKLyr"
+        ],
+        "ui": {
+          "x": 76.6667,
+          "y": 812.3333,
+          "zIndex": 312,
+          "widthName": 60,
+          "widthComment": 346,
+          "color": ""
+        },
+        "meta": {
+          "updateAt": 1720039670745,
+          "createAt": 1719939347555
+        }
+      }
+    },
+    "tableColumnEntities": {
+      "diNt5F1wBookf-qswZhmD": {
+        "id": "diNt5F1wBookf-qswZhmD",
+        "tableId": "N8_On1WeE7gSKK49n4EaC",
+        "name": "id",
+        "comment": "PK",
+        "dataType": "INTEGER",
+        "default": "",
+        "options": 12,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1719938450530,
+          "createAt": 1719937621856
+        }
+      },
+      "b9GfodsXcBApNpH_htG_X": {
+        "id": "b9GfodsXcBApNpH_htG_X",
+        "tableId": "N8_On1WeE7gSKK49n4EaC",
+        "name": "parsed_datetime",
+        "comment": "",
+        "dataType": "DATETIME",
+        "default": "CURRENT_DATETIME",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 97,
+          "widthComment": 60,
+          "widthDataType": 61,
+          "widthDefault": 124
+        },
+        "meta": {
+          "updateAt": 1719937852685,
+          "createAt": 1719937656307
+        }
+      },
+      "jJsygDdq3RozAKxo8Kje1": {
+        "id": "jJsygDdq3RozAKxo8Kje1",
+        "tableId": "N8_On1WeE7gSKK49n4EaC",
+        "name": "plug_types_searched",
+        "comment": "Semicolon-delimited list of strings as a single string for simplicity",
+        "dataType": "STRING",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 124,
+          "widthComment": 370,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1719938000638,
+          "createAt": 1719937870951
+        }
+      },
+      "zOUEU0I-LTyd6iWYmVIxm": {
+        "id": "zOUEU0I-LTyd6iWYmVIxm",
+        "tableId": "N8_On1WeE7gSKK49n4EaC",
+        "name": "location_id",
+        "comment": "PK. Plugshare-specific unique ID for a charging station/location. STR for zero padding reasons",
+        "dataType": "STRING",
+        "default": "",
+        "options": 14,
+        "ui": {
+          "keys": 1,
+          "widthName": 64,
+          "widthComment": 534,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1719938624817,
+          "createAt": 1719938003724
+        }
+      },
+      "rb4kyEALukdb5yBoedMSs": {
+        "id": "rb4kyEALukdb5yBoedMSs",
+        "tableId": "N8_On1WeE7gSKK49n4EaC",
+        "name": "search_cell_latitude",
+        "comment": "LAT of hexagonal search cell used. Can be used for rough approx of location LAT.",
+        "dataType": "FLOAT",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 116,
+          "widthComment": 460,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1719938234171,
+          "createAt": 1719938081031
+        }
+      },
+      "0DyUREHrXNeHRobF1GVBK": {
+        "id": "0DyUREHrXNeHRobF1GVBK",
+        "tableId": "N8_On1WeE7gSKK49n4EaC",
+        "name": "search_cell_longitude",
+        "comment": "LONG of hexagonal search cell used. Can be used for rough approx of location LONG.",
+        "dataType": "FLOAT",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 126,
+          "widthComment": 485,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1719938253082,
+          "createAt": 1719938236706
+        }
+      },
+      "sYZScIerEu_SgTFJHhAfw": {
+        "id": "sYZScIerEu_SgTFJHhAfw",
+        "tableId": "8e22coNKukyWVpw1P5X5h",
+        "name": "id",
+        "comment": "UUID4",
+        "dataType": "STRING",
+        "default": "",
+        "options": 14,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1719938696687,
+          "createAt": 1719938490633
+        }
+      },
+      "ezMbP-A4cqSwGgjr3sp13": {
+        "id": "ezMbP-A4cqSwGgjr3sp13",
+        "tableId": "N8_On1WeE7gSKK49n4EaC",
+        "name": "",
+        "comment": "",
+        "dataType": "",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1719938579296,
+          "createAt": 1719938579296
+        }
+      },
+      "AeqbChIePwQts96lCtJJH": {
+        "id": "AeqbChIePwQts96lCtJJH",
+        "tableId": "8e22coNKukyWVpw1P5X5h",
+        "name": "name",
+        "comment": "Station name",
+        "dataType": "STRING",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 76,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1719938723949,
+          "createAt": 1719938698759
+        }
+      },
+      "D8PGxpH4RZAGv2eugtcaU": {
+        "id": "D8PGxpH4RZAGv2eugtcaU",
+        "tableId": "8e22coNKukyWVpw1P5X5h",
+        "name": "address",
+        "comment": "Plaintext address in WKT form (e.g. street number, name, etc.)",
+        "dataType": "STRING",
+        "default": "",
+        "options": 4,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 355,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1719938764546,
+          "createAt": 1719938726403
+        }
+      },
+      "3LaKLELoakvyDizdrxVM3": {
+        "id": "3LaKLELoakvyDizdrxVM3",
+        "tableId": "8e22coNKukyWVpw1P5X5h",
+        "name": "plugscore",
+        "comment": "PlugShare-derived score for station quality. ",
+        "dataType": "INTEGER",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 251,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1719938804059,
+          "createAt": 1719938767406
+        }
+      },
+      "SGXDlfGicxO6qGtMi3YTT": {
+        "id": "SGXDlfGicxO6qGtMi3YTT",
+        "tableId": "8e22coNKukyWVpw1P5X5h",
+        "name": "wattage",
+        "comment": "Max power transfer claimed by station in watts",
+        "dataType": "FLOAT",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 265,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1719939032870,
+          "createAt": 1719938999463
+        }
+      },
+      "q4_iFc0E2Sozibs0cQIDP": {
+        "id": "q4_iFc0E2Sozibs0cQIDP",
+        "tableId": "8e22coNKukyWVpw1P5X5h",
+        "name": "service_hours",
+        "comment": "Plaintext description of when station is open",
+        "dataType": "STRING",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 81,
+          "widthComment": 252,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1719939053418,
+          "createAt": 1719939035117
+        }
+      },
+      "rh8gQzZqwsg8r17WrFDP-": {
+        "id": "rh8gQzZqwsg8r17WrFDP-",
+        "tableId": "8e22coNKukyWVpw1P5X5h",
+        "name": "checkin_count",
+        "comment": "Number of customer check-ins tracked by PlugShare",
+        "dataType": "INTEGER",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 85,
+          "widthComment": 301,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1719939148939,
+          "createAt": 1719939121260
+        }
+      },
+      "1EiKfxBtwdePYdNKFuvKl": {
+        "id": "1EiKfxBtwdePYdNKFuvKl",
+        "tableId": "8e22coNKukyWVpw1P5X5h",
+        "name": "location_id",
+        "comment": "FK to location_ids table",
+        "dataType": "",
+        "default": "",
+        "options": 12,
+        "ui": {
+          "keys": 0,
+          "widthName": 64,
+          "widthComment": 135,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1719939197712,
+          "createAt": 1719939151746
+        }
+      },
+      "yUarwdhbq99CUyEHBPC9v": {
+        "id": "yUarwdhbq99CUyEHBPC9v",
+        "tableId": "N8_On1WeE7gSKK49n4EaC",
+        "name": "id",
+        "comment": "UUID4",
+        "dataType": "STRING",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1719939255530,
+          "createAt": 1719939226743
+        }
+      },
+      "D2dIch7GoFMVWY8uMY-q9": {
+        "id": "D2dIch7GoFMVWY8uMY-q9",
+        "tableId": "8e22coNKukyWVpw1P5X5h",
+        "name": "location_id",
+        "comment": "FK. Plugshare-specific unique ID for a charging station/location. STR for zero padding reasons",
+        "dataType": "STRING",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 2,
+          "widthName": 64,
+          "widthComment": 533,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1720039555095,
+          "createAt": 1719939267832
+        }
+      },
+      "rER9mihbjv7SKIh4Vcv8d": {
+        "id": "rER9mihbjv7SKIh4Vcv8d",
+        "tableId": "h3Ou1BAvlBfDnQw0NIomn",
+        "name": "id",
+        "comment": "UUID4",
+        "dataType": "STRING",
+        "default": "",
+        "options": 14,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1720039251262,
+          "createAt": 1719939377416
+        }
+      },
+      "Xx8-lO2nJR-RXebBEVTVC": {
+        "id": "Xx8-lO2nJR-RXebBEVTVC",
+        "tableId": "h3Ou1BAvlBfDnQw0NIomn",
+        "name": "date",
+        "comment": "",
+        "dataType": "DATE",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1720039372755,
+          "createAt": 1720039260177
+        }
+      },
+      "pJMTGzFyPpjTsO8MJ948R": {
+        "id": "pJMTGzFyPpjTsO8MJ948R",
+        "tableId": "h3Ou1BAvlBfDnQw0NIomn",
+        "name": "car",
+        "comment": "",
+        "dataType": "STRING",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1720039364976,
+          "createAt": 1720039353636
+        }
+      },
+      "SEE1nriJ5Cb1V6od_IRK_": {
+        "id": "SEE1nriJ5Cb1V6od_IRK_",
+        "tableId": "h3Ou1BAvlBfDnQw0NIomn",
+        "name": "problem",
+        "comment": "Should probably be an ENUM once we know values",
+        "dataType": "STRING",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 290,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1720039437118,
+          "createAt": 1720039409525
+        }
+      },
+      "ttagxGX5_ygAe6BJWT7WO": {
+        "id": "ttagxGX5_ygAe6BJWT7WO",
+        "tableId": "h3Ou1BAvlBfDnQw0NIomn",
+        "name": "connector_type",
+        "comment": "Should probably be an ENUM once we know values",
+        "dataType": "STRING",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 91,
+          "widthComment": 290,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1720039460387,
+          "createAt": 1720039439097
+        }
+      },
+      "y8U8m2a3pnlz4KSkZ24Rd": {
+        "id": "y8U8m2a3pnlz4KSkZ24Rd",
+        "tableId": "h3Ou1BAvlBfDnQw0NIomn",
+        "name": "charge_power_kilowatts",
+        "comment": "",
+        "dataType": "INTEGER",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 139,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1720039474431,
+          "createAt": 1720039464232
+        }
+      },
+      "lh6-u9AzGMdjZr56fxo_A": {
+        "id": "lh6-u9AzGMdjZr56fxo_A",
+        "tableId": "h3Ou1BAvlBfDnQw0NIomn",
+        "name": "comment",
+        "comment": "Check-in free text",
+        "dataType": "STRING",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 104,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1720039497998,
+          "createAt": 1720039480522
+        }
+      },
+      "-9zTQWdEbwlIf059VRlVV": {
+        "id": "-9zTQWdEbwlIf059VRlVV",
+        "tableId": "h3Ou1BAvlBfDnQw0NIomn",
+        "name": "location_id",
+        "comment": "",
+        "dataType": "",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 64,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1720039521602,
+          "createAt": 1720039518153
+        }
+      },
+      "gnuKnXyC773jegICAKLyr": {
+        "id": "gnuKnXyC773jegICAKLyr",
+        "tableId": "h3Ou1BAvlBfDnQw0NIomn",
+        "name": "location_id",
+        "comment": "PK. Plugshare-specific unique ID for a charging station/location. STR for zero padding reasons",
+        "dataType": "STRING",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 2,
+          "widthName": 64,
+          "widthComment": 534,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1720039602253,
+          "createAt": 1720039602252
+        }
+      }
+    },
+    "relationshipEntities": {
+      "eK4Q2pG-DxzQhGGfcaYA_": {
+        "id": "eK4Q2pG-DxzQhGGfcaYA_",
+        "identification": false,
+        "relationshipType": 8,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "8e22coNKukyWVpw1P5X5h",
+          "columnIds": [
+            "sYZScIerEu_SgTFJHhAfw"
+          ],
+          "x": 576,
+          "y": 522,
+          "direction": 4
+        },
+        "end": {
+          "tableId": "N8_On1WeE7gSKK49n4EaC",
+          "columnIds": [
+            "yUarwdhbq99CUyEHBPC9v"
+          ],
+          "x": 542.5,
+          "y": 427,
+          "direction": 8
+        },
+        "meta": {
+          "updateAt": 1719939226743,
+          "createAt": 1719939226743
+        }
+      },
+      "RNCn6GkmufJ7LfnRUPHdq": {
+        "id": "RNCn6GkmufJ7LfnRUPHdq",
+        "identification": false,
+        "relationshipType": 8,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "N8_On1WeE7gSKK49n4EaC",
+          "columnIds": [
+            "zOUEU0I-LTyd6iWYmVIxm"
+          ],
+          "x": 561.1667,
+          "y": 461.6667,
+          "direction": 4
+        },
+        "end": {
+          "tableId": "8e22coNKukyWVpw1P5X5h",
+          "columnIds": [
+            "D2dIch7GoFMVWY8uMY-q9"
+          ],
+          "x": 679.6666,
+          "y": 315.9999,
+          "direction": 8
+        },
+        "meta": {
+          "updateAt": 1719939267833,
+          "createAt": 1719939267833
+        }
+      },
+      "PGEGgcRV4_iXke8WKxQ8w": {
+        "id": "PGEGgcRV4_iXke8WKxQ8w",
+        "identification": false,
+        "relationshipType": 16,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "N8_On1WeE7gSKK49n4EaC",
+          "columnIds": [
+            "zOUEU0I-LTyd6iWYmVIxm"
+          ],
+          "x": 561.1667,
+          "y": 637.6667,
+          "direction": 8
+        },
+        "end": {
+          "tableId": "h3Ou1BAvlBfDnQw0NIomn",
+          "columnIds": [
+            "gnuKnXyC773jegICAKLyr"
+          ],
+          "x": 562.1667,
+          "y": 812.3333,
+          "direction": 4
+        },
+        "meta": {
+          "updateAt": 1720039602252,
+          "createAt": 1720039602252
+        }
+      }
+    },
+    "indexEntities": {},
+    "indexColumnEntities": {},
+    "memoEntities": {
+      "1EnCumqUxpZAWzB8BMFpb": {
+        "id": "1EnCumqUxpZAWzB8BMFpb",
+        "value": "Note that the UQ column is \"Unique?\" \n\nand the AI column is \"Auto-Increment?\"",
+        "ui": {
+          "x": 6,
+          "y": 87.3333,
+          "zIndex": 159,
+          "width": 116,
+          "height": 100,
+          "color": ""
+        },
+        "meta": {
+          "updateAt": 1720039657803,
+          "createAt": 1719938424189
+        }
+      },
+      "8z9Eqgopt0jAF8J74_RmA": {
+        "id": "8z9Eqgopt0jAF8J74_RmA",
+        "value": "See here for how PlugScore is calculated (fairly simplistic): \n\nhttps://help.plugshare.com/hc/en-us/articles/6327300783507-Station-PlugScores",
+        "ui": {
+          "x": 170,
+          "y": 321.6667,
+          "zIndex": 244,
+          "width": 242,
+          "height": 100,
+          "color": ""
+        },
+        "meta": {
+          "updateAt": 1720039677117,
+          "createAt": 1719938917296
+        }
+      },
+      "XXDENiKD97I1PoLLkzeMz": {
+        "id": "XXDENiKD97I1PoLLkzeMz",
+        "value": "Opportunities for AI enhancements:\n\n1. Pull out service hours in a more structured form\n2. ",
+        "ui": {
+          "x": 5,
+          "y": 258.6667,
+          "zIndex": 275,
+          "width": 116,
+          "height": 100,
+          "color": ""
+        },
+        "meta": {
+          "updateAt": 1720039651745,
+          "createAt": 1719939056614
+        }
+      }
+    }
+  },
+  "lww": {
+    "N8_On1WeE7gSKK49n4EaC": [
+      "tableEntities",
+      1719937564387,
+      -1,
+      {
+        "name": 1719937590547,
+        "comment": 1719937616941
+      }
+    ],
+    "diNt5F1wBookf-qswZhmD": [
+      "tableColumnEntities",
+      1719937621856,
+      1719938571936,
+      {
+        "name": 1719937625777,
+        "options(notNull)": 1719937633495,
+        "default": 1719937648379,
+        "dataType": 1719937645703,
+        "comment": 1719937652473,
+        "options(autoIncrement)": 1719938447428,
+        "options(unique)": 1719938450530
+      }
+    ],
+    "b9GfodsXcBApNpH_htG_X": [
+      "tableColumnEntities",
+      1719937656306,
+      -1,
+      {
+        "name": 1719937832248,
+        "dataType": 1719937838561,
+        "options(notNull)": 1719937842129,
+        "default": 1719937852685
+      }
+    ],
+    "jJsygDdq3RozAKxo8Kje1": [
+      "tableColumnEntities",
+      1719937870950,
+      -1,
+      {
+        "name": 1719937896027,
+        "dataType": 1719937975836,
+        "options(notNull)": 1719937980233,
+        "comment": 1719938000637
+      }
+    ],
+    "zOUEU0I-LTyd6iWYmVIxm": [
+      "tableColumnEntities",
+      1719938003723,
+      -1,
+      {
+        "name": 1719938016827,
+        "dataType": 1719938023356,
+        "options(notNull)": 1719938028326,
+        "comment": 1719938624816,
+        "options(unique)": 1719938453429,
+        "options(primaryKey)": 1719938618262
+      }
+    ],
+    "rb4kyEALukdb5yBoedMSs": [
+      "tableColumnEntities",
+      1719938081031,
+      -1,
+      {
+        "name": 1719938202836,
+        "dataType": 1719938212620,
+        "options(notNull)": 1719938214381,
+        "comment": 1719938234170
+      }
+    ],
+    "0DyUREHrXNeHRobF1GVBK": [
+      "tableColumnEntities",
+      1719938236706,
+      -1,
+      {
+        "name": 1719938248671,
+        "dataType": 1719938248671,
+        "options(notNull)": 1719938248671,
+        "default": 1719938248671,
+        "comment": 1719938253081
+      }
+    ],
+    "settings.databaseName": [
+      "settings",
+      -1,
+      -1,
+      {
+        "databaseName": 1719938372360
+      }
+    ],
+    "1EnCumqUxpZAWzB8BMFpb": [
+      "memoEntities",
+      1719938424189,
+      -1,
+      {
+        "value": 1719938466120
+      }
+    ],
+    "8e22coNKukyWVpw1P5X5h": [
+      "tableEntities",
+      1719938470039,
+      -1,
+      {
+        "name": 1719938474530,
+        "comment": 1719938486640
+      }
+    ],
+    "sYZScIerEu_SgTFJHhAfw": [
+      "tableColumnEntities",
+      1719938490632,
+      -1,
+      {
+        "options(primaryKey)": 1719938633788,
+        "name": 1719938635399,
+        "dataType": 1719938651819,
+        "options(unique)": 1719938692390,
+        "comment": 1719938696686
+      }
+    ],
+    "ezMbP-A4cqSwGgjr3sp13": [
+      "tableColumnEntities",
+      1719938579295,
+      1719938584286,
+      {}
+    ],
+    "AeqbChIePwQts96lCtJJH": [
+      "tableColumnEntities",
+      1719938698758,
+      -1,
+      {
+        "name": 1719938707572,
+        "dataType": 1719938709190,
+        "options(notNull)": 1719938711271,
+        "comment": 1719938723949
+      }
+    ],
+    "D8PGxpH4RZAGv2eugtcaU": [
+      "tableColumnEntities",
+      1719938726402,
+      -1,
+      {
+        "name": 1719938740568,
+        "dataType": 1719938742554,
+        "options(unique)": 1719938746226,
+        "comment": 1719938764545
+      }
+    ],
+    "3LaKLELoakvyDizdrxVM3": [
+      "tableColumnEntities",
+      1719938767405,
+      -1,
+      {
+        "name": 1719938777261,
+        "dataType": 1719938784611,
+        "comment": 1719938804058
+      }
+    ],
+    "8z9Eqgopt0jAF8J74_RmA": [
+      "memoEntities",
+      1719938917296,
+      -1,
+      {
+        "value": 1719938943913
+      }
+    ],
+    "SGXDlfGicxO6qGtMi3YTT": [
+      "tableColumnEntities",
+      1719938999462,
+      -1,
+      {
+        "name": 1719939001026,
+        "dataType": 1719939011191,
+        "comment": 1719939032869
+      }
+    ],
+    "q4_iFc0E2Sozibs0cQIDP": [
+      "tableColumnEntities",
+      1719939035117,
+      -1,
+      {
+        "name": 1719939040196,
+        "dataType": 1719939042638,
+        "comment": 1719939053418
+      }
+    ],
+    "XXDENiKD97I1PoLLkzeMz": [
+      "memoEntities",
+      1719939056613,
+      -1,
+      {
+        "value": 1719939097276
+      }
+    ],
+    "rh8gQzZqwsg8r17WrFDP-": [
+      "tableColumnEntities",
+      1719939121259,
+      -1,
+      {
+        "name": 1719939122727,
+        "dataType": 1719939127476,
+        "comment": 1719939148938
+      }
+    ],
+    "1EiKfxBtwdePYdNKFuvKl": [
+      "tableColumnEntities",
+      1719939151746,
+      1720039544761,
+      {
+        "name": 1719939175890,
+        "options(notNull)": 1719939181624,
+        "options(unique)": 1719939183274,
+        "comment": 1719939197711
+      }
+    ],
+    "yUarwdhbq99CUyEHBPC9v": [
+      "tableColumnEntities",
+      1719939226742,
+      1719939255529,
+      {
+        "options(notNull)": 1719939226742,
+        "name": 1719939226742,
+        "dataType": 1719939226742,
+        "default": 1719939226742,
+        "comment": 1719939226742
+      }
+    ],
+    "eK4Q2pG-DxzQhGGfcaYA_": [
+      "relationshipEntities",
+      1719939226742,
+      1719939255529,
+      {}
+    ],
+    "D2dIch7GoFMVWY8uMY-q9": [
+      "tableColumnEntities",
+      1719939267832,
+      -1,
+      {
+        "options(notNull)": 1719939267832,
+        "name": 1719939267832,
+        "dataType": 1719939267832,
+        "default": 1719939267832,
+        "comment": 1720039555093
+      }
+    ],
+    "RNCn6GkmufJ7LfnRUPHdq": [
+      "relationshipEntities",
+      1719939267832,
+      -1,
+      {}
+    ],
+    "h3Ou1BAvlBfDnQw0NIomn": [
+      "tableEntities",
+      1719939347555,
+      -1,
+      {
+        "name": 1719939354521,
+        "comment": 1719939374566
+      }
+    ],
+    "rER9mihbjv7SKIh4Vcv8d": [
+      "tableColumnEntities",
+      1719939377416,
+      -1,
+      {
+        "name": 1719939379445,
+        "options(notNull)": 1720039233982,
+        "options(unique)": 1720039235034,
+        "options(primaryKey)": 1720039237740,
+        "dataType": 1720039247700,
+        "comment": 1720039251261
+      }
+    ],
+    "Xx8-lO2nJR-RXebBEVTVC": [
+      "tableColumnEntities",
+      1720039260177,
+      -1,
+      {
+        "name": 1720039308648,
+        "dataType": 1720039311846,
+        "comment": 1720039351103,
+        "options(notNull)": 1720039372754
+      }
+    ],
+    "pJMTGzFyPpjTsO8MJ948R": [
+      "tableColumnEntities",
+      1720039353635,
+      -1,
+      {
+        "name": 1720039362430,
+        "dataType": 1720039364976
+      }
+    ],
+    "SEE1nriJ5Cb1V6od_IRK_": [
+      "tableColumnEntities",
+      1720039409524,
+      -1,
+      {
+        "name": 1720039411474,
+        "dataType": 1720039419521,
+        "comment": 1720039437117
+      }
+    ],
+    "ttagxGX5_ygAe6BJWT7WO": [
+      "tableColumnEntities",
+      1720039439096,
+      -1,
+      {
+        "name": 1720039445026,
+        "dataType": 1720039456835,
+        "comment": 1720039460386
+      }
+    ],
+    "y8U8m2a3pnlz4KSkZ24Rd": [
+      "tableColumnEntities",
+      1720039464232,
+      -1,
+      {
+        "name": 1720039469267,
+        "dataType": 1720039474431
+      }
+    ],
+    "lh6-u9AzGMdjZr56fxo_A": [
+      "tableColumnEntities",
+      1720039480521,
+      -1,
+      {
+        "name": 1720039486027,
+        "dataType": 1720039488126,
+        "comment": 1720039497996
+      }
+    ],
+    "-9zTQWdEbwlIf059VRlVV": [
+      "tableColumnEntities",
+      1720039518152,
+      1720039571806,
+      {
+        "name": 1720039521602
+      }
+    ],
+    "gnuKnXyC773jegICAKLyr": [
+      "tableColumnEntities",
+      1720039602251,
+      -1,
+      {
+        "options(notNull)": 1720039602251,
+        "name": 1720039602251,
+        "dataType": 1720039602251,
+        "default": 1720039602251,
+        "comment": 1720039602251
+      }
+    ],
+    "PGEGgcRV4_iXke8WKxQ8w": [
+      "relationshipEntities",
+      1720039602251,
+      -1,
+      {}
+    ]
+  }
+}
