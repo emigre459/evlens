@@ -56,6 +56,29 @@ class CheckIn:
             logger.error(
                 "No savepath or GCP bucket provided for error screenshot."
                 )
+            
+    @classmethod
+    def _get_power_number(cls, text: str) -> int:
+        '''
+        Extracts the value from a power string. E.g. "110 Kilowatts" returns the integer 110.
+
+        Parameters
+        ----------
+        text : str
+            The text to extract the leading number from
+
+        Returns
+        -------
+        int
+            The value in the string
+        '''
+        if text is None or text is np.nan:
+            return np.nan
+        
+        match = re.search(r"\d+", text)
+        if match:
+            return int(match.group(0))
+        return np.nan
         
     def parse(self) -> pd.DataFrame:
         '''
@@ -88,7 +111,7 @@ class CheckIn:
                 elif d.get_attribute("class") == 'connector ng-binding':
                     output['connector_type'] = d.text
                 elif d.get_attribute("class") == 'kilowatts ng-scope':
-                    output['charge_power_kilowatts'] = d.text
+                    output['charge_power_kilowatts'] = self.__class__._get_power_number(d.text)
                 elif d.get_attribute("class") == 'comment ng-binding':
                     output['comment'] = d.text
                     
