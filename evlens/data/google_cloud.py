@@ -91,7 +91,7 @@ class BigQuery:
     def __init__(
         self,
         project: str = 'evlens',
-        location: str = 'US'
+        location: str = 'us-central-1'
     ):
         self.project = project
         self.location = location
@@ -137,11 +137,20 @@ class BigQuery:
             )
         else:
             logger.error("%s project does not contain any datasets.", project)
+    
+    def setup_table(
+        self,
+        dataset: str,
+        table_name: str,
+        schema_path: str
+    ):
         
-    
-    # def setup_table(self, schema_filepath: str, dataset: str):
-    
+        table_id = f"{self.client.project}.{dataset}.{table_name}"
+        schema = self.client.schema_from_json(schema_path)
 
+        table = bigquery.Table(table_id, schema=schema)
+        table = self.client.create_table(table)  # API request
+        logger.info("Created table %s.", table_id)
 
     def query_to_dataframe(self, query: str) -> pd.DataFrame:
         
