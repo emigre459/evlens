@@ -82,10 +82,52 @@ def download_blob(
         bucket_name,
         destination_file_name
     )
-
-
-def bigquery_to_dataframe(query: str) -> pd.DataFrame:
     
-    client = bigquery.Client()
-    df = client.query_and_wait(query).to_dataframe()
-    return df.replace({None: np.nan}).dropna(how='all')
+
+class BigQuery:
+    
+    def __init__(
+        self,
+        project: str = 'evlens',
+        location: str = 'US'
+    ):
+        self.project = project
+        self.location = location
+        self.client = bigquery.Client(
+            project=project,
+            location=location
+        )
+        
+        
+    def create_dataset(
+        self,
+        dataset: str,
+        location: str = None
+    ):
+        dataset_id = f"{self.client.project}.{dataset}"
+        # Construct a full Dataset object to send to the API.
+        dataset = bigquery.Dataset(dataset_id)
+
+        # Specify the geographic location where the dataset should reside.
+        if location is None:
+            location = self.client.location
+        dataset.location = location
+
+        # Send the dataset to the API for creation, with an explicit timeout.
+        # Raises google.api_core.exceptions.Conflict if the Dataset already
+        # exists within the project.
+        dataset = self.client.create_dataset(dataset, timeout=30)  # Make an API request.
+        logger.info("Created dataset %s.%s",
+                    self.client.project,
+                    dataset.dataset_id
+        )
+        
+    
+    # def setup_table(self, schema_filepath: str, dataset: str):
+    
+
+
+    def query_to_dataframe(self, query: str) -> pd.DataFrame:
+        
+        df = self.client.query_and_wait(query).to_dataframe()
+        return df.replace({None: np.nan}).dropna(how='all')
