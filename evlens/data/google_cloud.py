@@ -1,3 +1,5 @@
+from typing import List
+
 from google.cloud import storage
 from google.cloud import bigquery
 import pandas as pd
@@ -121,6 +123,20 @@ class BigQuery:
                     self.client.project,
                     dataset.dataset_id
         )
+        
+    def list_datasets(self) -> List[str]:
+        
+        datasets = list(self.client.list_datasets())  # Make an API request.
+        project = self.client.project
+
+        if datasets:
+            logger.info(
+                "Datasets in project %s: %s",
+                project,
+                [d.dataset_id for d in datasets]
+            )
+        else:
+            logger.error("%s project does not contain any datasets.", project)
         
     
     # def setup_table(self, schema_filepath: str, dataset: str):
