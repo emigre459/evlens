@@ -153,7 +153,6 @@ class MainMapScraper:
 
     def __init__(
         self,
-        save_filepath: str,
         error_screenshot_savepath: str = None,
         error_screenshot_save_bucket: str = 'plugshare_scraping',
         save_every: int = 100,
@@ -163,7 +162,6 @@ class MainMapScraper:
         progress_bars: bool = True
     ):
         self.timeout = timeout
-        self.save_path = save_filepath
         self.error_screenshot_savepath = error_screenshot_savepath
         self.error_screenshot_save_bucket = error_screenshot_save_bucket
         self.save_every = save_every
@@ -171,11 +169,6 @@ class MainMapScraper:
         self.use_tqdm = progress_bars        
         self._bq_client = BigQuery(project='evlens')
         self._bq_dataset_name = 'plugshare'
-        
-        #TODO: make this send screenshots to GCP Cloud Storage
-        if not os.path.exists(self.save_path):
-            logger.warning("Save filpath does not exist, creating it...")
-            os.makedirs(self.save_path)
         
         if self.error_screenshot_savepath is not None:    
             if not os.path.exists(self.error_screenshot_savepath):
@@ -407,13 +400,30 @@ class MainMapScraper:
             df_checkins = pd.DataFrame()
             
         logger.info("Page scrape complete!")
-        df_location = pd.DataFrame(output, index=[0])
-        df_location['id'] = location_id
+        df_station = pd.DataFrame(output, index=[0])
+        df_station['location_id'] = location_id
         
         return (
-            df_location,
+            df_station,
             df_checkins
         )
+        
+    def save_to_bigquery(
+        self,
+        df_stations: pd.DataFrame,
+        df_checkins: pd.DataFrame
+    ):
+        self._bq_client.insert_data(
+            df_stations,
+            self._bq_dataset_name,
+            'stations'
+        )
+        self._bq_client.insert_data(
+            df_checkins,
+            self._bq_dataset_name,
+            'checkins'
+        )
+        
         
     def run(self, locations: List[int]) -> Tuple[pd.DataFrame, pd.DataFrame]:
         logger.info("Beginning scraping!")
@@ -421,7 +431,7 @@ class MainMapScraper:
         # Have to maximize to see all links...weirdly
         self.driver.maximize_window()
 
-        all_locations = []
+        all_stations = []
         all_checkins = []
         if self.use_tqdm:
             iterator = enumerate(tqdm(
@@ -437,19 +447,23 @@ class MainMapScraper:
 
             self.reject_all_cookies_dialog()                
             self.exit_login_dialog()
-            df_location, df_checkins = self.scrape_location(location_id)
-            all_locations.append(df_location)
+            df_station, df_checkins = self.scrape_location(location_id)
+            all_stations.append(df_station)
             all_checkins.append(df_checkins)
             
-            #TODO: replace this saving logic (and the final save logic) with on-the-fly database saves
+            # Save to BQ
             if i+1 % self.save_every == 0:
                 logger.info(f"Saving checkpoint at location {i}")
                 
-                path = self.save_path + f"df_locations_{i}.pkl"
-                pd.concat(all_locations, ignore_index=True).to_pickle(path)
+                df_stations_checkpoint = pd.concat(all_stations, ignore_index=True)
+                df_checkins_checkpoint = pd.concat(all_checkins, ignore_index=True)
+                self.save_to_bigquery(
+                    df_stations_checkpoint,
+                    df_checkins_checkpoint
+                )
                 
-                path = self.save_path + f"df_checkins_{i}.pkl"
-                pd.concat(all_checkins, ignore_index=True).to_pickle(path)
+                all_stations = []
+                all_checkins = []
 
             #TODO: tune between page switches
             logger.info(f"Sleeping for {self.page_load_pause} seconds")
@@ -457,14 +471,16 @@ class MainMapScraper:
 
         self.driver.quit()
         
-        df_all_locations = pd.concat(all_locations, ignore_index=True)
-        df_all_locations.to_pickle(self.save_path + f"df_all_locations.pkl")
-        
-        df_all_checkins = pd.concat(all_checkins, ignore_index=True)
-        df_all_checkins.to_pickle(self.save_path + f"df_all_checkins.pkl")
+        # Save one last time before closing out
+        df_stations_checkpoint = pd.concat(all_stations, ignore_index=True)
+        df_checkins_checkpoint = pd.concat(all_checkins, ignore_index=True)
+        self.save_to_bigquery(
+            df_stations_checkpoint,
+            df_checkins_checkpoint
+        )
         
         logger.info("Scraping complete!")
-        return df_all_locations, df_all_checkins
+        return df_stations_checkpoint, df_checkins_checkpoint
     
     
 @ray.remote(max_restarts=3, max_task_retries=3)
