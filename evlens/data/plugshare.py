@@ -17,7 +17,7 @@ from tqdm import tqdm
 import ray
 
 from evlens import get_current_datetime
-from evlens.data.google_cloud import upload_file
+from evlens.data.google_cloud import upload_file, BigQuery
 
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
@@ -129,16 +129,20 @@ class CheckIn:
         
         # Check what columns we're missing and fill with null
         expected_columns = [
+            'id',
             'date',
             'car',
             'problem',
             'connector_type',
             'charge_power_kilowatts',
-            'comment'
+            'comment',
+            'station_id'
         ]
         for c in expected_columns:
             if c not in output.keys():
                 output[c] = np.nan
+                
+        output['id'] = BigQuery.make_uuid()
         
         
         # Drop anything that is all-nulls when ignoring location_id
@@ -165,6 +169,8 @@ class MainMapScraper:
         self.save_every = save_every
         self.page_load_pause = page_load_pause
         self.use_tqdm = progress_bars        
+        self._bq_client = BigQuery(project='evlens')
+        self._bq_dataset_name = 'plugshare'
         
         #TODO: make this send screenshots to GCP Cloud Storage
         if not os.path.exists(self.save_path):

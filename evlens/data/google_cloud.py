@@ -117,7 +117,8 @@ class BigQuery:
         dataset_id = self._make_dataset_id(dataset)
         return dataset_id + "." + table
         
-    def _make_uuid(self) -> str:
+    @classmethod
+    def make_uuid(cls) -> str:
         return str(uuid4())
         
     def create_dataset(
