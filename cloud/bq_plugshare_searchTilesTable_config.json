@@ -1,0 +1,32 @@
+[
+    {
+      "name": "id",
+      "type": "STRING",
+      "mode": "REQUIRED",
+      "description": "Primary key of table (UUID4)"
+    },
+    {
+        "name": "h3_polyfill",
+        "type": "STRING",
+        "mode": "REQUIRED",
+        "description": "Uber H3 identifier for this cell"
+      },
+    {
+      "name": "cell_radius_mi",
+      "type": "FLOAT",
+      "mode": "REQUIRED",
+      "description": "Radius of the hexagonal search cell in miles"
+    },
+    {
+      "name": "latitude",
+      "type": "FLOAT",
+      "mode": "REQUIRED",
+      "description": "Latitude of the search cell"
+    },
+    {
+        "name": "longitude",
+        "type": "FLOAT",
+        "mode": "REQUIRED",
+        "description": "Longitude of the search cell"
+    }
+  ]
