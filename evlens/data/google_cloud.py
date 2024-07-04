@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict, Union
 
 from google.cloud import storage
 from google.cloud import bigquery
@@ -91,7 +91,7 @@ class BigQuery:
     def __init__(
         self,
         project: str = 'evlens',
-        location: str = 'us-central-1'
+        location: str = 'US'
     ):
         self.project = project
         self.location = location
@@ -100,13 +100,27 @@ class BigQuery:
             location=location
         )
         
+    def _make_dataset_id(
+        self,
+        dataset_name: str
+    ) -> str:
+        return f"{self.project}.{dataset_name}"
+    
+    def _make_table_id(
+        self,
+        dataset: str,
+        table: str
+    ) -> str:
+        dataset_id = self._make_dataset_id(dataset)
+        return dataset_id + "." + table
+        
         
     def create_dataset(
         self,
         dataset: str,
         location: str = None
     ):
-        dataset_id = f"{self.client.project}.{dataset}"
+        dataset_id = self._make_dataset_id(dataset)
         # Construct a full Dataset object to send to the API.
         dataset = bigquery.Dataset(dataset_id)
 
@@ -145,14 +159,93 @@ class BigQuery:
         schema_path: str
     ):
         
-        table_id = f"{self.client.project}.{dataset}.{table_name}"
+        table_id = self._make_table_id(dataset, table_name)
         schema = self.client.schema_from_json(schema_path)
 
         table = bigquery.Table(table_id, schema=schema)
         table = self.client.create_table(table)  # API request
         logger.info("Created table %s.", table_id)
+        
+    def set_table_keys(
+        self,
+        dataset: str,
+        table: str,
+        primary_key_columns: Union[str, List[str]],
+        foreign_keys: List[Dict[str, str]] = None
+    ):
+        '''
+        Sets primary and foreign keys on an existing table.
+
+        Parameters
+        ----------
+        table : str
+            Name of the table
+        primary_key_columns : List[str]
+            Columns in the table to use as the (composite) primary key
+        foreign_keys : List[Dict[str, str]]
+            Foreign key mappings, if any. Should be of the form:
+            
+            [
+                {
+                    'key': '<column>',
+                    'foreign_table': '<foreign_table_name>',
+                    'foreign_column'> <foreign_table_column_name>'
+                },
+                {...},
+                ...
+            ]
+        '''
+        table_id = self._make_table_id(dataset, table)
+        
+        if isinstance(primary_key_columns, str):
+            primary_key_columns = [primary_key_columns]
+        
+        fk_subqueries = []
+        if foreign_keys is not None:
+            for d in foreign_keys:
+                fk_subqueries.append(
+                    f"ADD FOREIGN KEY({d['key']}) references {d['foreign_table']}({d['foreign_column']}) NOT ENFORCED"
+                )
+            foreign_key_subquery = '\n'.join(fk_subqueries)
+            
+            query = f"""
+            ALTER table {table_id} ADD primary key({', '.join(primary_key_columns)}) NOT ENFORCED,
+            {foreign_key_subquery};
+            """
+            
+        else:
+            query = f"""
+            ALTER table {table_id} ADD primary key({', '.join(primary_key_columns)}) NOT ENFORCED;
+            """
+        
+        return self.client.query(query)
+        # return query
 
     def query_to_dataframe(self, query: str) -> pd.DataFrame:
         
         df = self.client.query_and_wait(query).to_dataframe()
         return df.replace({None: np.nan}).dropna(how='all')
+    
+    def insert_data(
+        self,
+        df: pd.DataFrame,
+        dataset_name: str,
+        table_name: str,
+        
+    ):
+
+        # Set table_id to the ID of the table to create.
+        table_id = self._make_table_id(dataset_name, table_name)
+
+        job = self.client.load_table_from_dataframe(
+            df, table_id#, job_config=job_config
+        )  # Make an API request.
+        job.result()  # Wait for the job to complete.
+
+        table = self.client.get_table(table_id)  # Make an API request.
+        logger.info(
+            "Loaded %s rows and %s columns to %s",
+            table.num_rows,
+            len(table.schema),
+            table_id
+        )
