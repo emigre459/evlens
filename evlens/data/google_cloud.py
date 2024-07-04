@@ -1,4 +1,5 @@
 from typing import List, Dict, Union
+from uuid import uuid4
 
 from google.cloud import storage
 from google.cloud import bigquery
@@ -87,7 +88,9 @@ def download_blob(
     
 
 class BigQuery:
-    
+    '''
+    Set of useful methods all tied to a single GCP project for BigQuery table setup, querying, data insertion, etc.
+    '''
     def __init__(
         self,
         project: str = 'evlens',
@@ -114,6 +117,8 @@ class BigQuery:
         dataset_id = self._make_dataset_id(dataset)
         return dataset_id + "." + table
         
+    def _make_uuid(self) -> str:
+        return str(uuid4())
         
     def create_dataset(
         self,
@@ -189,7 +194,7 @@ class BigQuery:
                 {
                     'key': '<column>',
                     'foreign_table': '<foreign_table_name>',
-                    'foreign_column'> <foreign_table_column_name>'
+                    'foreign_column': '<foreign_table_column_name>'
                 },
                 {...},
                 ...
@@ -233,7 +238,18 @@ class BigQuery:
         table_name: str,
         
     ):
+        '''
+        Inserts new data as an append operation to BQ. NOTE THAT BQ DOES NOT DE-DUPLICATE DATA, IT APPENDS BLINDLY. So use with caution.
 
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The data of interest, DataFrame schema needs to match BQ table schema (but need not have columns in same order)
+        dataset_name : str
+            Name of the target BQ Dataset
+        table_name : str
+            Name of the target BQ table
+        '''
         # Set table_id to the ID of the table to create.
         table_id = self._make_table_id(dataset_name, table_name)
 
@@ -249,3 +265,14 @@ class BigQuery:
             len(table.schema),
             table_id
         )
+        
+    def clear_table(
+        self,
+        dataset_name: str,
+        table_name: str
+    ):
+        
+        table_id = self._make_table_id(dataset_name, table_name)
+        query = f"DELETE FROM `{table_id}` WHERE true"
+        self.client.query_and_wait(query)
+        logger.info("Table %s cleared", table_id)

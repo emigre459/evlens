@@ -72,8 +72,10 @@ class CheckIn:
         int
             The value in the string
         '''
-        if text is None or text is np.nan:
+        if text is None or np.isnan(text):
             return np.nan
+        elif isinstance(text, (int, float)):
+            return text
         
         match = re.search(r"\d+", text)
         if match:
