@@ -72,7 +72,7 @@ class CheckIn:
         int
             The value in the string
         '''
-        if text is None or np.isnan(text):
+        if text is None or pd.isna(text):
             return np.nan
         elif isinstance(text, (int, float)):
             return text
@@ -395,7 +395,7 @@ class MainMapScraper:
                     checkin_dfs.append(out)
                 
             df_checkins = pd.concat(checkin_dfs, ignore_index=True)
-            df_checkins['location_id'] = location_id
+            df_checkins['station_id'] = location_id
             
         except (NoSuchElementException, TimeoutException):
             logger.error("Comments error", exc_info=True)
