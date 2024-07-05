@@ -41,11 +41,11 @@ class CheckIn:
         filename = get_current_datetime() \
             + '_' + str(os.getpid()) + '_' + filename
             
-        if self.error_screenshot_savepath is not None:
-            path = os.path.join(self.error_screenshot_savepath, filename)
-            self.element.driver.save_screenshot(path)
-        elif self.error_screenshot_save_bucket is not None: 
-            self.element.driver.save_screenshot(filename)
+        if self.error_screenshot_savepath is None:
+            raise ValueError("`error_screenshot_savepath` must not be None")
+        path = os.path.join(self.error_screenshot_savepath, filename)
+        self.element.driver.save_screenshot(path)
+        if self.error_screenshot_save_bucket is not None:
             upload_file(
                 self.error_screenshot_save_bucket,
                 filename,
@@ -142,11 +142,11 @@ class CheckIn:
             if c not in output.keys():
                 output[c] = np.nan
                 
-        output['id'] = BigQuery.make_uuid()
-        
+        df_out = pd.DataFrame(output, index=[0]).dropna(how='all')
+        df_out['id'] = BigQuery.make_uuid()
         
         # Drop anything that is all-nulls when ignoring location_id
-        return pd.DataFrame(output, index=[0]).dropna(how='all')
+        return df_out
 
 
 class MainMapScraper:
@@ -207,11 +207,11 @@ class MainMapScraper:
         filename = get_current_datetime() \
             + '_' + str(os.getpid()) + '_' + filename
             
-        if self.error_screenshot_savepath is not None:
-            path = os.path.join(self.error_screenshot_savepath, filename)
-            self.driver.save_screenshot(path)
-        elif self.error_screenshot_save_bucket is not None: 
-            self.driver.save_screenshot(filename)
+        if self.error_screenshot_savepath is None:
+            raise ValueError("`error_screenshot_savepath` must not be None")
+        path = os.path.join(self.error_screenshot_savepath, filename)
+        self.driver.save_screenshot(path)
+        if self.error_screenshot_save_bucket is not None:
             upload_file(
                 self.error_screenshot_save_bucket,
                 filename,
@@ -220,7 +220,7 @@ class MainMapScraper:
             os.remove(filename)
         else:
             logger.error(
-                "No savepath or GCP bucket provided for error screenshot."
+                "No GCP bucket provided for error screenshot."
                 )
 
     #TODO: make logger.info into logger.debug everywhere?
@@ -290,7 +290,7 @@ class MainMapScraper:
     #TODO: clean up and try to more elegantly extract things en masse
     def scrape_location(
         self,
-        location_id: int
+        location_id: str
         ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         '''
         Scrapes a single location (single webpage)
@@ -300,6 +300,10 @@ class MainMapScraper:
         Tuple[pd.DataFrame, pd.DataFrame]
             (Single-row dataframe with location metadata, dataframe with one row per check-in comment)
         '''
+        if isinstance(location_id, int):
+            logger.warning("location_id came through as int, should be str. Casting to str...")
+            location_id = str(location_id).zfill(6)
+        
         output = dict()
         
         logger.info("Starting page scrape...")
@@ -387,8 +391,12 @@ class MainMapScraper:
                 if not out.empty:
                     checkin_dfs.append(out)
                 
-            df_checkins = pd.concat(checkin_dfs, ignore_index=True)
-            df_checkins['station_id'] = location_id
+            if len(checkin_dfs) == 0:
+                logger.error("No checkins found")
+                df_checkins = pd.DataFrame()
+            else:
+                df_checkins = pd.concat(checkin_dfs, ignore_index=True)
+                df_checkins['station_id'] = location_id
             
         except (NoSuchElementException, TimeoutException):
             logger.error("Comments error", exc_info=True)
@@ -402,6 +410,11 @@ class MainMapScraper:
         logger.info("Page scrape complete!")
         df_station = pd.DataFrame(output, index=[0])
         df_station['location_id'] = location_id
+        df_station['id'] = BigQuery.make_uuid()
+        df_station['last_scraped'] = get_current_datetime(
+            date_delimiter=None,
+            time_delimiter=None
+        )
         
         return (
             df_station,
@@ -425,7 +438,7 @@ class MainMapScraper:
         )
         
         
-    def run(self, locations: List[int]) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def run(self, locations: List[str]) -> Tuple[pd.DataFrame, pd.DataFrame]:
         logger.info("Beginning scraping!")
         
         # Have to maximize to see all links...weirdly
