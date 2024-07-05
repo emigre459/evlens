@@ -75,11 +75,12 @@ def parallelized_data_processing(
         include_dashboard=True
     )
     
-    # Make unique copies of each actor
-    parallel_actors = [actor.remote(**kwargs) for _ in range(n_jobs)]
-    
     # Batch up in n_actors-sized batches across all run_args
     run_arg_batches = get_batches_by_worker(run_args, n_jobs)
+    
+    # Make unique copies of each actor
+    parallel_actors = [actor.remote(**kwargs) for _ in range(len(run_arg_batches))]
+    
     logger.info(
         "Generated %s batches of sizes %s",
         len(run_arg_batches),

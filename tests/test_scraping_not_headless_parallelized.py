@@ -4,7 +4,7 @@ from evlens.concurrency import parallelized_data_processing
 from joblib import dump
 
 # Electrify America in Springfield, VA mall parking lot
-TEST_LOCATION = 252784
+TEST_LOCATION = '252784'
 
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
@@ -23,7 +23,6 @@ if __name__ == '__main__':
         ParallelMainMapScraper,
         locations,
         n_jobs=N_JOBS,
-        save_filepath = f"data/external/plugshare/{TODAY_STRING}/",
         error_screenshot_savepath = f"data/external/plugshare/{TODAY_STRING}/errors/",
         timeout=5,
         headless=False,

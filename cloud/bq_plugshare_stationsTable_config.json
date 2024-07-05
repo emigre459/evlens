@@ -6,6 +6,12 @@
       "description": "Primary key of table (UUID4)"
     },
     {
+      "name": "last_scraped",
+      "type": "DATETIME",
+      "mode": "REQUIRED",
+      "description": "Date and time data were last refreshed for a station"
+    },
+    {
       "name": "name",
       "type": "STRING",
       "mode": "NULLABLE",
