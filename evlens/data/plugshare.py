@@ -319,7 +319,7 @@ class MainMapScraper:
             
         except (NoSuchElementException, TimeoutException):
             logger.error("Station name error, skipping...")
-            return
+            return (pd.DataFrame(), pd.DataFrame())
         
         try: ## FIND STATION ADDRESS
             
@@ -430,16 +430,22 @@ class MainMapScraper:
         df_stations: pd.DataFrame,
         df_checkins: pd.DataFrame
     ):
-        self._bq_client.insert_data(
-            df_stations,
-            self._bq_dataset_name,
-            'stations'
-        )
-        self._bq_client.insert_data(
-            df_checkins,
-            self._bq_dataset_name,
-            'checkins'
-        )
+        if df_stations.empty:
+            logger.error("No stations data, not saving to BigQuery")
+        else:
+            self._bq_client.insert_data(
+                df_stations,
+                self._bq_dataset_name,
+                'stations'
+            )
+        if df_checkins.empty:
+            logger.error("No checkins data, not saving to BigQuery")
+        else:
+            self._bq_client.insert_data(
+                df_checkins,
+                self._bq_dataset_name,
+                'checkins'
+            )
         
         
     def run(self, locations: List[str]) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -465,12 +471,15 @@ class MainMapScraper:
             self.reject_all_cookies_dialog()                
             self.exit_login_dialog()
             df_station, df_checkins = self.scrape_location(location_id)
-            all_stations.append(df_station)
-            all_checkins.append(df_checkins)
+            
+            if not df_station.empty:
+                all_stations.append(df_station)
+            if not df_checkins.empty:
+                all_checkins.append(df_checkins)
             
             # Save to BQ
-            if i+1 % self.save_every == 0:
-                logger.info(f"Saving checkpoint at location {i}")
+            if len(all_stations) % self.save_every == 0:
+                logger.info(f"Saving checkpoint at index {i} and location {location_id}")
                 
                 df_stations_checkpoint = pd.concat(all_stations, ignore_index=True)
                 df_checkins_checkpoint = pd.concat(all_checkins, ignore_index=True)
@@ -489,12 +498,13 @@ class MainMapScraper:
         self.driver.quit()
         
         # Save one last time before closing out
-        df_stations_checkpoint = pd.concat(all_stations, ignore_index=True)
-        df_checkins_checkpoint = pd.concat(all_checkins, ignore_index=True)
-        self.save_to_bigquery(
-            df_stations_checkpoint,
-            df_checkins_checkpoint
-        )
+        if len(all_stations) > 0:
+            df_stations_checkpoint = pd.concat(all_stations, ignore_index=True)
+            df_checkins_checkpoint = pd.concat(all_checkins, ignore_index=True)
+            self.save_to_bigquery(
+                df_stations_checkpoint,
+                df_checkins_checkpoint
+            )
         
         logger.info("Scraping complete!")
         return df_stations_checkpoint, df_checkins_checkpoint
