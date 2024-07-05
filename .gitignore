@@ -94,3 +94,4 @@ evlens.notebooks.code-workspace
 poetry.lock
 evlens.code-workspace
 plugshare-scraping.json
+chromedriver*

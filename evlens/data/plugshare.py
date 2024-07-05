@@ -52,7 +52,7 @@ class CheckIn:
                 path,
                 "errors/" + filename
             )
-            os.remove(filename)
+            os.remove(path)
         else:
             logger.error(
                 "No savepath or GCP bucket provided for error screenshot."
@@ -221,7 +221,7 @@ class MainMapScraper:
                 path,
                 "errors/" + filename
             )
-            os.remove(filename)
+            os.remove(path)
         else:
             logger.error(
                 "No GCP bucket provided for error screenshot."
