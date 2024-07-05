@@ -12,6 +12,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.chrome.service import Service
 
 from tqdm import tqdm
 import ray
@@ -48,7 +49,7 @@ class CheckIn:
         if self.error_screenshot_save_bucket is not None:
             upload_file(
                 self.error_screenshot_save_bucket,
-                filename,
+                path,
                 "errors/" + filename
             )
             os.remove(filename)
@@ -195,7 +196,10 @@ class MainMapScraper:
         self.prefs = {"profile.default_content_setting_values.geolocation":2} 
         self.chrome_options.add_experimental_option("prefs", self.prefs)
         
-        self.driver = webdriver.Chrome(options=self.chrome_options)
+        self.driver = webdriver.Chrome(
+            options=self.chrome_options,
+            service=None
+        )
         self.wait = WebDriverWait(self.driver, self.timeout)
         
         # Make sure we look less bot-like
@@ -214,7 +218,7 @@ class MainMapScraper:
         if self.error_screenshot_save_bucket is not None:
             upload_file(
                 self.error_screenshot_save_bucket,
-                filename,
+                path,
                 "errors/" + filename
             )
             os.remove(filename)
