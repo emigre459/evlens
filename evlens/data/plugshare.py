@@ -180,6 +180,9 @@ class MainMapScraper:
         
         self.chrome_options = Options()
         
+        # Required to avoid issues spinning up Chrome in docker/Linux
+        self.chrome_options.add_argument('--no-sandbox')
+        
         # Removes automation infobar and other bot-looking things
         self.chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
         self.chrome_options.add_experimental_option("useAutomationExtension", False)
