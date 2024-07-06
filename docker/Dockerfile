@@ -2,7 +2,6 @@ FROM python:3.11.5-slim
 
 # Make sure we have the latest and greatest
 RUN apt update && apt upgrade -y
-RUN apt install curl unzip -y
 
 # Install poetry
 RUN pip install --upgrade pip poetry
@@ -15,12 +14,6 @@ COPY tests/ ./tests
 COPY scripts/ ./scripts
 COPY evlens/ ./evlens
 COPY README.md .
-
-# Add selenium webdriver
-RUN curl https://storage.googleapis.com/chrome-for-testing-public/126.0.6478.126/linux64/chrome-linux64.zip --output chromedriver.zip
-# This will become `chrome-linux64` directory
-RUN unzip chromedriver.zip
-RUN rm chromedriver.zip
 
 # Install the project and dependencies
 RUN poetry install --no-dev --no-interaction
