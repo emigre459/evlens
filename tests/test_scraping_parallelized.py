@@ -24,7 +24,7 @@ if __name__ == '__main__':
         locations,
         n_jobs=N_JOBS,
         error_screenshot_savepath = f"data/external/plugshare/{TODAY_STRING}/errors/",
-        timeout=5,
+        timeout=10,
         headless=True,
         progress_bars=False
     )
