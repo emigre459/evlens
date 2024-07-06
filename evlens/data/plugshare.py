@@ -16,6 +16,7 @@ from selenium.webdriver.chrome.service import Service
 
 from tqdm import tqdm
 import ray
+from tenacity import retry, wait_exponential
 
 from evlens import get_current_datetime
 from evlens.data.google_cloud import upload_file, BigQuery
@@ -425,6 +426,15 @@ class MainMapScraper:
             df_checkins
         )
         
+    def save_to_bigquery_with_retry(
+        self,
+        df_stations: pd.DataFrame,
+        df_checkins: pd.DataFrame
+    ):
+        retry_strategy = retry(wait=wait_exponential(multiplier=1, min=4, max=10))
+        retry_strategy(self.save_to_bigquery)(df_stations, df_checkins)
+        
+    
     def save_to_bigquery(
         self,
         df_stations: pd.DataFrame,
@@ -483,7 +493,7 @@ class MainMapScraper:
                 
                 df_stations_checkpoint = pd.concat(all_stations, ignore_index=True)
                 df_checkins_checkpoint = pd.concat(all_checkins, ignore_index=True)
-                self.save_to_bigquery(
+                self.save_to_bigquery_with_retry(
                     df_stations_checkpoint,
                     df_checkins_checkpoint
                 )
@@ -501,7 +511,7 @@ class MainMapScraper:
         if len(all_stations) > 0:
             df_stations_checkpoint = pd.concat(all_stations, ignore_index=True)
             df_checkins_checkpoint = pd.concat(all_checkins, ignore_index=True)
-            self.save_to_bigquery(
+            self.save_to_bigquery_with_retry(
                 df_stations_checkpoint,
                 df_checkins_checkpoint
             )
