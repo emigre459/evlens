@@ -80,6 +80,17 @@ env_remove:
 ## Re-create environment from clean slate
 env_rebuild: env_remove env_create
 
+## Build package so it is easily installed via Docker
+prepare_package:
+	@echo "Don't forget to update your docker-compose files with the new build path arg if you changed anything (e.g. incremented the release)!!"
+	@poetry build
+
+## Build poetry package fresh and re-build docker image with test spin-up
+rebuild_and_launch_docker_image:
+	@poetry build
+	@docker compose -f docker/scraping/docker-compose.yml up --build
+
+
 ## Test python environment is setup correctly
 test_environment:
 	$(PYTHON_INTERPRETER) test_environment.py
