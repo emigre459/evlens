@@ -18,6 +18,30 @@
       "description": "Charging station/location name"
     },
     {
+      "name": "station_owner",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Charging network operator or host owner"
+    },
+    {
+      "name": "location_type",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "E.g. 'Shopping Center'"
+    },
+    {
+      "name": "parking",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Describes if parking costs money and how one parks while charging (e.g. 'Pull in parking')"
+    },
+    {
+      "name": "description",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "A general overview of the details of a station, such as the number of different types of plugs, if an extra wide spot is in front of one, etc."
+    },
+    {
       "name": "address",
       "type": "STRING",
       "mode": "NULLABLE",
