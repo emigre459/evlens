@@ -174,7 +174,7 @@ class MainMapScraper:
         
         if self.error_screenshot_savepath is not None:    
             if not os.path.exists(self.error_screenshot_savepath):
-                logger.warning("Error screenshot save filpath does not exist, creating it...")
+                logger.warning("Error screenshot save filepath does not exist, creating it...")
                 os.makedirs(self.error_screenshot_savepath)
                 
         
@@ -324,6 +324,26 @@ class MainMapScraper:
         except (NoSuchElementException, TimeoutException):
             logger.error("Station name error, skipping...")
             return (pd.DataFrame(), pd.DataFrame())
+            
+        try:
+            output['station_owner'] = self.wait.until(EC.visibility_of_element_located((
+                By.XPATH,
+                '//*[@id="ports"]/div[2]/span'
+            ))).text
+            
+        except (NoSuchElementException, TimeoutException):
+            logger.error("Can't find station owner")
+            output['station_owner'] = np.nan
+            
+        try:
+            output['location_type'] = self.wait.until(EC.visibility_of_element_located((
+                By.XPATH,
+                '//*[@id="ports"]/div[4]'
+            ))).text
+            
+        except (NoSuchElementException, TimeoutException):
+            logger.error("Can't find location type")
+            output['location_type'] = np.nan
         
         try: ## FIND STATION ADDRESS
             
@@ -349,6 +369,17 @@ class MainMapScraper:
             logger.error("Wattage error", exc_info=True)
             output['wattage'] = np.nan
             
+        try: ## Parking details
+            
+            output['parking'] = self.driver.find_element(
+                By.XPATH, 
+                '//*[@id="info"]/div[2]/div[6]/div[2]'
+                ).text
+            
+        except (NoSuchElementException, TimeoutException):
+            logger.error("Parking data not found", exc_info=True)
+            output['parking'] = np.nan
+            
         try: ## FIND STATION HOURS
             
             output['service_hours'] = self.driver.find_element(By.XPATH, "//*[@id=\"info\"]/div[2]/div[11]/div[2]/div").text
@@ -356,6 +387,16 @@ class MainMapScraper:
         except (NoSuchElementException, TimeoutException):
             logger.error("Station hours error", exc_info=True)
             output['service_hours'] = np.nan
+            
+        try: ## Station details        
+            output['description'] = self.driver.find_element(
+                By.XPATH,
+                '//*[@id="info"]/div[2]/div[12]/div[2]/span'
+                ).text
+            
+        except (NoSuchElementException, TimeoutException):
+            logger.error("No description found", exc_info=True)
+            output['description'] = np.nan
 
         try: # Get total check-in counts
             def _get_checkin_count(text) -> Union[np.nan, int]:
@@ -477,6 +518,7 @@ class MainMapScraper:
         else:
             iterator = enumerate(locations)
             
+        #TODO: add some retry logic for rare "database can't connect" error
         for i, location_id in iterator:
             url = f"https://www.plugshare.com/location/{location_id}"
             self.driver.get(url)
