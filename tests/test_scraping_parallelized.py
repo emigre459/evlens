@@ -2,6 +2,7 @@ from evlens.data.plugshare import ParallelMainMapScraper
 from evlens.concurrency import parallelized_data_processing
 
 from joblib import dump
+import os
 
 # Electrify America in Springfield, VA mall parking lot
 TEST_LOCATION = '252784'
@@ -18,13 +19,20 @@ if __name__ == '__main__':
     locations = [TEST_LOCATION] * LOCATION_COUNT
     N_JOBS = 11
     
+    # Setup save directory so we don't have a race condition setting it up
+    error_path = f"data/external/plugshare/{TODAY_STRING}/errors/"
+    if not os.path.exists(error_path):
+        logger.warning("Error screenshot save filepath does not exist, creating it...")
+        os.makedirs(error_path)
+    
     #TODO: tune how long we need to sleep and timeout
     results = parallelized_data_processing(
         ParallelMainMapScraper,
         locations,
         n_jobs=N_JOBS,
-        error_screenshot_savepath = f"data/external/plugshare/{TODAY_STRING}/errors/",
+        error_screenshot_savepath=error_path,
         timeout=10,
+        page_load_pause=0,
         headless=True,
         progress_bars=False
     )
