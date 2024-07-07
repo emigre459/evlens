@@ -17,7 +17,7 @@ TODAY_STRING = date.today().strftime("%m-%d-%Y")
 if __name__ == '__main__':
     LOCATION_COUNT = 12
     locations = [TEST_LOCATION] * LOCATION_COUNT
-    N_JOBS = 11
+    N_JOBS = 4
     
     # Setup save directory so we don't have a race condition setting it up
     error_path = f"data/external/plugshare/{TODAY_STRING}/errors/"
@@ -44,3 +44,4 @@ if __name__ == '__main__':
     assert num_locations_scraped == LOCATION_COUNT, f"Found {num_locations_scraped} locations, not the {LOCATION_COUNT} expected"
     
     #TODO: add more tests to check that all data is there
+    print("SUCCESS!")
