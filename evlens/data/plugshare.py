@@ -183,7 +183,11 @@ class MainMapScraper:
         # Required to avoid issues spinning up Chrome in docker/Linux
         self.chrome_options.add_argument('--no-sandbox')
         
+        # Can't parse elements if the full window isn't visible, surprisingly
+        self.chrome_options.add_argument('--start-maximized')
+        
         # Removes automation infobar and other bot-looking things
+        self.chrome_options.add_argument('--disable-gpu')
         self.chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
         self.chrome_options.add_experimental_option("useAutomationExtension", False)
         self.chrome_options.add_argument("--disable-blink-features=AutomationControlled")
@@ -497,9 +501,6 @@ class MainMapScraper:
         
     def run(self, locations: List[str]) -> Tuple[pd.DataFrame, pd.DataFrame]:
         logger.info("Beginning scraping!")
-        
-        # Have to maximize to see all links...weirdly
-        self.driver.maximize_window()
 
         all_stations = []
         all_checkins = []
