@@ -95,6 +95,11 @@ build_and_push_to_gh:
 	@poetry build
 	@git add dist/ && git commit -m "Build latest pkg" && git push
 
+## If a new build is passed via GH, refresh the install
+refresh_vm_from_new_build:
+	@git pull
+	@pip install --upgrade --force-reinstall dist/evlens-0.1.0-py3-none-any.whl 
+
 
 ## Test python environment is setup correctly
 test_environment:
