@@ -90,6 +90,11 @@ rebuild_and_launch_docker_image:
 	@poetry build
 	@docker compose -f docker/scraping/docker-compose.yml up --build
 
+## Build and push to GH the latest
+build_and_push_to_gh:
+	@poetry build
+	@git add dist/ && git commit -m "Build latest pkg" && git push
+
 
 ## Test python environment is setup correctly
 test_environment:
