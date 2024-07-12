@@ -3,14 +3,22 @@ import pandas as pd
 import numpy as np
 import os
 import re
-from typing import Tuple, List, Union
+from typing import Tuple, Set, Union, List
+from urllib.parse import urlparse
+
+from joblib import dump as joblib_dump
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import (
+    NoSuchElementException,
+    TimeoutException,
+    ElementClickInterceptedException,
+    ElementNotInteractableException
+)
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.chrome.service import Service
 
@@ -21,8 +29,18 @@ from tenacity import retry, wait_random_exponential
 from evlens import get_current_datetime
 from evlens.data.google_cloud import upload_file, BigQuery
 
+from evlens import get_current_datetime
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
+
+
+ALLOWABLE_PLUG_TYPES = [
+    # 'Tesla Supercharger',
+    'SAE Combo DC CCS',
+    # 'J-1772'
+]
+
+EMBEDDED_DEV_MAP_URL = 'https://developer.plugshare.com/embed'
 
 
 class CheckIn:
@@ -149,6 +167,20 @@ class CheckIn:
         
         # Drop anything that is all-nulls when ignoring location_id
         return df_out
+    
+
+class SearchCriterion():
+    def __init__(
+        self,
+        latitude: float,
+        longitude: float,
+        radius_in_miles: float,
+        wait_time_for_map_pan: float
+    ):
+        self.latitude = latitude
+        self.longitude = longitude
+        self.radius = radius_in_miles
+        self.time_to_pan = wait_time_for_map_pan
 
 
 class MainMapScraper:
@@ -542,30 +574,235 @@ class MainMapScraper:
 
             #TODO: tune between page switches
             logger.info(f"Sleeping for {self.page_load_pause} seconds")
-            time.sleep(self.page_load_pause)
+            logger.warning("NEED TO TUNE THIS SLEEP TIME")
+            sleep(self.page_load_pause)
 
         self.driver.quit()
         
-        # Save one last time before closing out
-        if len(all_stations) > 0:
-            df_stations_checkpoint = pd.concat(all_stations, ignore_index=True)
-            df_checkins_checkpoint = pd.concat(all_checkins, ignore_index=True)
-            self.save_to_bigquery(
-                df_stations_checkpoint,
-                df_checkins_checkpoint
-            )
+        #TODO: add station location integers as column
+        df_all_locations = pd.concat(all_locations, ignore_index=True)
+        self.save_checkpoint(df_all_locations, data_name='df_all_locations')
+        
+        df_all_checkins = pd.concat(all_checkins, ignore_index=True)
+        self.save_checkpoint(df_all_checkins, data_name='df_all_checkins')
         
         logger.info("Scraping complete!")
-        return df_stations_checkpoint, df_checkins_checkpoint
+        return df_all_locations, df_all_checkins
     
+#TODO: return results as DataFrame + de-duplicate by location ID    
+class LocationIDScraper(MainMapScraper):
     
-@ray.remote(max_restarts=3, max_task_retries=3)
-class ParallelMainMapScraper(MainMapScraper):
-    def save_to_bigquery(
+    def pick_plug_filters(
         self,
-        df_stations: pd.DataFrame,
-        df_checkins: pd.DataFrame
+        plugs_to_use: List[str] = ALLOWABLE_PLUG_TYPES
     ):
-        retry_strategy = retry(wait=wait_random_exponential(multiplier=0.5, min=0, max=10))
-        retry_strategy(super().save_to_bigquery)(df_stations, df_checkins)
+        # Filter for only plug types we care about
+        # First turn off all filters
+        check_none_plug_type_button = self.wait.until(
+            EC.element_to_be_clickable((By.XPATH, '//*[@id="outlet_off"]'))
+        )
+        check_none_plug_type_button.click()
+
+        # Get all plug type filter items
+        plug_type_elements = self.driver\
+            .find_element(By.XPATH, '//*[@id="outlets"]')\
+                .find_elements(By.XPATH, './child::*')
+
+        # Filter for the plug types we care about
+        plug_types_of_interest = [
+            p for p in plug_type_elements if p.text in plugs_to_use
+        ]
+
+        # Click the ones we care about
+        for p in plug_types_of_interest:
+            checkbox = p.find_element(
+                By.CSS_SELECTOR,
+                'input[type="checkbox"]'
+            )
+            checkbox.click()
+            
+    def search_location(
+        self,
+        search_criterion: SearchCriterion
+        ):
         
+        # Just in case we're not seeing default content initially
+        self.driver.switch_to.default_content()
+        
+        # Clear lat/long search box and then put in our new lat/long combo
+        coordinate_search_box = self.wait.until(
+            EC.visibility_of_element_located((By.XPATH, '//*[@id="search"]'))
+        )
+        coordinate_search_box.clear()
+        coordinate_search_box.send_keys(",".join([
+            str(search_criterion.latitude),
+            str(search_criterion.longitude)
+        ]))
+
+        # Clear search radius (miles) box and add our radius in
+        radius_search_box = self.driver.find_element(By.XPATH, '//*[@id="radius"]')
+        radius_search_box.clear()
+        radius_search_box.send_keys(search_criterion.radius)
+
+        # Search!
+        search_button = self.driver.find_element(By.XPATH, '//*[@id="geocode"]')
+        search_button.click()
+        
+        # Give the iframe a moment to pan
+        sleep(search_criterion.time_to_pan)
+        
+    
+    def scroll_back_to_map_view(self, map_iframe: WebElement):
+        '''
+        Scrolls to iframe so pins are fully in viewport for clicking/scraping
+
+        Parameters
+        ----------
+        map_iframe_element : WebElement
+            WebElement for the iframe
+        '''
+        # Scroll to iframe so pins are in viewport and we can click/scrape them
+        # 1) Get the iframe height
+        iframe_height = int(map_iframe.get_attribute("height"))
+
+        # 2) Scroll up to the element
+        ActionChains(self.driver)\
+                .scroll_to_element(map_iframe)\
+                .perform()
+                
+        # Get current window position and scroll up to current_y + iframe_height/2
+        current_window_coords = self.driver.execute_script(
+            "return [window.pageXOffset, window.pageYOffset]"
+        )
+
+        # Note that y-coord is measured 0 at top of page -> more positive as it scrolls down
+        self.driver.execute_script(
+            f"window.scrollTo({current_window_coords[0]}, {current_window_coords[1] - int(iframe_height)})"
+        )
+        
+    def parse_location_link(self, pin_element) -> str:
+        pin_element.click()
+        location_link = self.wait.until(EC.visibility_of_element_located((
+            By.XPATH,
+            '//*[@id="charger_info_footer"]/a'
+        )))
+        link_parsed = urlparse(location_link.get_attribute('href'))
+        return link_parsed.path.rsplit("/", 1)[-1]
+    
+    def find_and_use_map_iframe(self) -> WebElement:
+        map_iframe = self.driver.find_element(
+            By.XPATH,
+            '//*[@id="widget"]/iframe'
+        )
+        self.scroll_back_to_map_view(map_iframe)
+        self.driver.switch_to.frame(map_iframe)
+        
+        return map_iframe
+    
+    def grab_location_ids(
+        self,
+        search_criterion: SearchCriterion
+        ) -> List[str]:
+        
+        # Find the map iframe and move so it's in full view for scraping
+        map_iframe = self.find_and_use_map_iframe()
+
+        # Grab map pins seen for chargers in map viewport
+        try:
+            pins = self.wait.until(EC.visibility_of_all_elements_located((
+                By.CSS_SELECTOR,
+                'img[src="https://maps.gstatic.com/mapfiles/transparent.png"]'
+            )))
+            
+        except TimeoutException:
+            logger.error("No pins found here, moving on!")
+            return None
+
+        num_pins_in_view = len(pins)
+        
+        # Pull location ID from pin 
+        # and then search again to pull map frame back to see all pins
+        # Have to do this each time due to map panning when pin click happens
+        # And have to re-find pins so WebElement for each pin doesn't go stale
+        location_ids = []
+        for i in range(num_pins_in_view):
+        # Do another search if it's not the first time
+            if i != 0:
+                self.search_location(search_criterion)
+                map_iframe = self.find_and_use_map_iframe()
+
+                pins = self.wait.until(EC.visibility_of_all_elements_located((
+                    By.CSS_SELECTOR,
+                    'img[src="https://maps.gstatic.com/mapfiles/transparent.png"]'
+                )))
+
+            try:
+                location_ids.append(self.parse_location_link(pins[i]))
+            except (ElementClickInterceptedException, ElementNotInteractableException):
+                logger.error("Pin %s not clickable", i)
+            except (NoSuchElementException):
+                logger.error("Pin %s not found weirdly...", i)
+                
+        return location_ids
+    
+    def run(
+        self,
+        search_criteria: List[SearchCriterion],
+        plugs_to_include: List[str] = ALLOWABLE_PLUG_TYPES,
+        progress_bar_start: int = 0
+        ) -> pd.DataFrame:
+        logger.info("Beginning location ID scraping!")
+        
+        # Load up the page
+        self.driver.maximize_window()
+        self.driver.get(EMBEDDED_DEV_MAP_URL)
+        
+        # Select only the plug filters we care about
+        self.pick_plug_filters(plugs_to_include)
+        
+        dfs = []
+        for i, search_criterion in enumerate(tqdm(
+            search_criteria,
+            desc="Searching map tiles",
+            initial=progress_bar_start
+        )):
+            self.search_location(search_criterion)
+            location_ids = self.grab_location_ids(search_criterion)
+            if location_ids is None:
+                continue
+            
+            num_locations_found = len(location_ids)
+            dfs.append(pd.DataFrame({
+                'parsed_datetime': [get_current_datetime()] * num_locations_found,
+                'plug_types_searched': [plugs_to_include] * num_locations_found,
+                'location_id': location_ids,
+                'search_cell_latitude': [search_criterion.latitude] * num_locations_found,
+                'search_cell_longitude': [search_criterion.longitude] * num_locations_found,
+            }))
+            
+            # Save checkpoint
+            if i + 1 + progress_bar_start % self.save_every == 0 \
+            and len(dfs) > 0:
+                self.save_checkpoint(
+                    pd.concat(dfs, ignore_index=True),
+                    data_name=f'df_location_ids_{i}'
+                )
+                # Try to save some memory
+                del dfs
+                dfs = []
+            
+            sleep(search_criterion.time_to_pan)
+
+        # self.driver.switch_to.default_content()
+        self.driver.quit()
+
+        if len(dfs) > 0:
+            df_locations = pd.concat(dfs, ignore_index=True)\
+                .drop_duplicates(subset=['location_id'])
+            self.save_checkpoint(df_locations, "df_location_ids")
+            logger.info("All location IDs scraped (that we could)!")
+            return df_locations
+        
+        else:
+            logger.error("Something went horribly wrong, why do we have ZERO locations?!")
+            return None
