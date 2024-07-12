@@ -1,4 +1,4 @@
-import time
+from time import sleep
 import pandas as pd
 import numpy as np
 import os
@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 from joblib import dump as joblib_dump
 
 from selenium import webdriver
+from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
@@ -580,16 +581,18 @@ class MainMapScraper:
         self.driver.quit()
         
         #TODO: add station location integers as column
-        df_all_locations = pd.concat(all_locations, ignore_index=True)
-        self.save_checkpoint(df_all_locations, data_name='df_all_locations')
-        
+        df_all_stations = pd.concat(all_stations, ignore_index=True)        
         df_all_checkins = pd.concat(all_checkins, ignore_index=True)
-        self.save_checkpoint(df_all_checkins, data_name='df_all_checkins')
+        self.save_to_bigquery(
+            df_all_stations,
+            df_all_checkins
+        )
         
         logger.info("Scraping complete!")
-        return df_all_locations, df_all_checkins
+        return df_all_stations, df_all_checkins
     
 #TODO: return results as DataFrame + de-duplicate by location ID    
+#TODO: save to biquery instead of file!
 class LocationIDScraper(MainMapScraper):
     
     def pick_plug_filters(
@@ -754,7 +757,6 @@ class LocationIDScraper(MainMapScraper):
         logger.info("Beginning location ID scraping!")
         
         # Load up the page
-        self.driver.maximize_window()
         self.driver.get(EMBEDDED_DEV_MAP_URL)
         
         # Select only the plug filters we care about
