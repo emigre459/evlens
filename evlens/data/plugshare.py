@@ -510,27 +510,18 @@ class MainMapScraper:
     
     def save_to_bigquery(
         self,
-        df_stations: pd.DataFrame,
-        df_checkins: pd.DataFrame
+        data: pd.DataFrame,
+        table_name: str
     ):
         logger.info("Saving to BigQuery...")
-        if df_stations.empty:
-            logger.error("No stations data, not saving to BigQuery")
+        if data.empty:
+            logger.error("`data` empty, not saving to BigQuery`")
         else:
             self._bq_client.insert_data(
-                df_stations,
+                data,
                 self._bq_dataset_name,
-                'stations'
+                table_name
             )
-        if df_checkins.empty:
-            logger.error("No checkins data, not saving to BigQuery")
-        else:
-            self._bq_client.insert_data(
-                df_checkins,
-                self._bq_dataset_name,
-                'checkins'
-            )
-        
         
     def run(self, locations: List[str]) -> Tuple[pd.DataFrame, pd.DataFrame]:
         logger.info("Beginning scraping!")
@@ -567,7 +558,11 @@ class MainMapScraper:
                 df_checkins_checkpoint = pd.concat(all_checkins, ignore_index=True)
                 self.save_to_bigquery(
                     df_stations_checkpoint,
-                    df_checkins_checkpoint
+                    'stations'
+                )
+                self.save_to_bigquery(
+                    df_checkins_checkpoint,
+                    'checkins'
                 )
                 
                 all_stations = []
@@ -585,7 +580,11 @@ class MainMapScraper:
         df_all_checkins = pd.concat(all_checkins, ignore_index=True)
         self.save_to_bigquery(
             df_all_stations,
-            df_all_checkins
+            'stations'
+        )
+        self.save_to_bigquery(
+            df_all_checkins,
+            'checkins'
         )
         
         logger.info("Scraping complete!")

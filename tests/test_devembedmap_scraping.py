@@ -22,7 +22,8 @@ if __name__ == '__main__':
     lis = LocationIDScraper(
         f"./data/external/plugshare/{TODAY_STRING}/",
         timeout=3,
-        headless=True
+        headless=True,
+        progress_bars=True
     )
 
     sc = SearchCriterion(
