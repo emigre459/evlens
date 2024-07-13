@@ -590,6 +590,19 @@ class MainMapScraper:
         logger.info("Scraping complete!")
         return df_all_stations, df_all_checkins
     
+    
+@ray.remote(max_restarts=3, max_task_retries=3)
+class ParallelMainMapScraper(MainMapScraper):
+    def save_to_bigquery(
+        self,
+        data: pd.DataFrame,
+        table_name: str
+    ):
+        retry_strategy = retry(wait=wait_random_exponential(multiplier=0.5, min=0, max=10))
+        retry_strategy(super().save_to_bigquery)(data, table_name)
+    
+    
+    
 class LocationIDScraper(MainMapScraper):
     
     def pick_plug_filters(
