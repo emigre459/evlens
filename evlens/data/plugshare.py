@@ -643,7 +643,7 @@ class LocationIDScraper(MainMapScraper):
         
         # Clear lat/long search box and then put in our new lat/long combo
         coordinate_search_box = self.wait.until(
-            EC.visibility_of_element_located((By.XPATH, '//*[@id="search"]'))
+            EC.element_to_be_clickable((By.XPATH, '//*[@id="search"]'))
         )
         coordinate_search_box.clear()
         coordinate_search_box.send_keys(",".join([
@@ -657,7 +657,9 @@ class LocationIDScraper(MainMapScraper):
         radius_search_box.send_keys(search_criterion.radius)
 
         # Search!
-        search_button = self.driver.find_element(By.XPATH, '//*[@id="geocode"]')
+        search_button = self.wait.until(
+            EC.element_to_be_clickable((By.XPATH, '//*[@id="geocode"]'))
+        )
         search_button.click()
         
         # Give the iframe a moment to pan
@@ -743,7 +745,7 @@ class LocationIDScraper(MainMapScraper):
                 self.search_location(search_criterion)
                 map_iframe = self.find_and_use_map_iframe()
 
-                pins = self.wait.until(EC.visibility_of_all_elements_located((
+                pins = self.wait.until(EC.element_to_be_clickable((
                     By.CSS_SELECTOR,
                     'img[src="https://maps.gstatic.com/mapfiles/transparent.png"]'
                 )))
@@ -751,9 +753,9 @@ class LocationIDScraper(MainMapScraper):
             try:
                 location_ids.append(self.parse_location_link(pins[i]))
             except (ElementClickInterceptedException, ElementNotInteractableException):
-                logger.error("Pin %s not clickable", i)
+                logger.error("Pin %s not clickable", i, exc_info=True)
             except (NoSuchElementException):
-                logger.error("Pin %s not found weirdly...", i)
+                logger.error("Pin %s not found weirdly...", i, exc_info=True)
                 
         return location_ids
     
