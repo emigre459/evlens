@@ -695,7 +695,8 @@ class LocationIDScraper(MainMapScraper):
         )
         
     def parse_location_link(self, pin_element) -> str:
-        pin_element.click()
+        pin = self.wait.until(EC.element_to_be_clickable(pin_element))
+        pin.click()
         location_link = self.wait.until(EC.visibility_of_element_located((
             By.XPATH,
             '//*[@id="charger_info_footer"]/a'
@@ -745,7 +746,7 @@ class LocationIDScraper(MainMapScraper):
                 self.search_location(search_criterion)
                 map_iframe = self.find_and_use_map_iframe()
 
-                pins = self.wait.until(EC.element_to_be_clickable((
+                pins = self.wait.until(EC.visibility_of_all_elements_located((
                     By.CSS_SELECTOR,
                     'img[src="https://maps.gstatic.com/mapfiles/transparent.png"]'
                 )))
