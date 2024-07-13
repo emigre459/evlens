@@ -97,6 +97,7 @@ build_and_push_to_gh:
 
 ## If a new build is passed via GH, refresh the install
 refresh_vm_from_new_build:
+	@echo "Don't forget to activate your venv first!"
 	@git pull
 	@pip install --upgrade --force-reinstall dist/evlens-0.1.0-py3-none-any.whl 
 
