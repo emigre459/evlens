@@ -599,8 +599,7 @@ class ParallelMainMapScraper(MainMapScraper):
         table_name: str
     ):
         retry_strategy = retry(wait=wait_random_exponential(multiplier=0.5, min=0, max=10))
-        retry_strategy(super().save_to_bigquery)(data, table_name)
-    
+        retry_strategy(super().save_to_bigquery)(data, table_name)    
     
     
 class LocationIDScraper(MainMapScraper):
@@ -826,3 +825,15 @@ class LocationIDScraper(MainMapScraper):
         else:
             logger.error("Something went horribly wrong, why do we have ZERO locations?!")
             return None
+
+
+
+@ray.remote(max_restarts=3, max_task_retries=3)
+class ParallelLocationIDScraper(LocationIDScraper):
+    def save_to_bigquery(
+        self,
+        data: pd.DataFrame,
+        table_name: str
+    ):
+        retry_strategy = retry(wait=wait_random_exponential(multiplier=0.5, min=0, max=10))
+        retry_strategy(super().save_to_bigquery)(data, table_name)
