@@ -30,7 +30,6 @@ from tenacity import retry, wait_random_exponential
 from evlens import get_current_datetime
 from evlens.data.google_cloud import upload_file, BigQuery
 
-from evlens import get_current_datetime
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
 
@@ -551,7 +550,8 @@ class MainMapScraper:
                 all_checkins.append(df_checkins)
             
             # Save to BQ
-            if len(all_stations) % self.save_every == 0:
+            if len(all_stations) % self.save_every == 0 \
+            and len(all_stations) > 0:
                 logger.info(f"Saving checkpoint at index {i} and location {location_id}")
                 
                 df_stations_checkpoint = pd.concat(all_stations, ignore_index=True)
@@ -590,8 +590,6 @@ class MainMapScraper:
         logger.info("Scraping complete!")
         return df_all_stations, df_all_checkins
     
-#TODO: return results as DataFrame + de-duplicate by location ID    
-#TODO: save to biquery instead of file!
 class LocationIDScraper(MainMapScraper):
     
     def pick_plug_filters(
@@ -751,7 +749,6 @@ class LocationIDScraper(MainMapScraper):
         self,
         search_criteria: List[SearchCriterion],
         plugs_to_include: List[str] = ALLOWABLE_PLUG_TYPES,
-        progress_bar_start: int = 0
         ) -> pd.DataFrame:
         logger.info("Beginning location ID scraping!")
         
@@ -762,11 +759,15 @@ class LocationIDScraper(MainMapScraper):
         self.pick_plug_filters(plugs_to_include)
         
         dfs = []
-        for i, search_criterion in enumerate(tqdm(
-            search_criteria,
-            desc="Searching map tiles",
-            initial=progress_bar_start
-        )):
+        if self.use_tqdm:
+            iterator = tqdm(
+                search_criteria,
+                desc="Searching map tiles"
+            )
+        else:
+            iterator = search_criteria
+        
+        for i, search_criterion in enumerate(iterator):
             self.search_location(search_criterion)
             location_ids = self.grab_location_ids(search_criterion)
             if location_ids is None:
@@ -774,22 +775,27 @@ class LocationIDScraper(MainMapScraper):
             
             num_locations_found = len(location_ids)
             dfs.append(pd.DataFrame({
-                'parsed_datetime': [get_current_datetime()] * num_locations_found,
-                'plug_types_searched': [plugs_to_include] * num_locations_found,
+                'id': BigQuery.make_uuid(),
+                'parsed_datetime': [get_current_datetime(date_delimiter=None, time_delimiter=None)] * num_locations_found,
+                'plug_types_searched': [";".join(plugs_to_include)] * num_locations_found,
                 'location_id': location_ids,
                 'search_cell_latitude': [search_criterion.latitude] * num_locations_found,
                 'search_cell_longitude': [search_criterion.longitude] * num_locations_found,
             }))
             
             # Save checkpoint
-            if i + 1 + progress_bar_start % self.save_every == 0 \
+            if len(dfs) % self.save_every == 0 \
             and len(dfs) > 0:
-                self.save_checkpoint(
-                    pd.concat(dfs, ignore_index=True),
-                    data_name=f'df_location_ids_{i}'
+                df_locations_checkpoint = pd.concat(dfs, ignore_index=True)\
+                    .drop_duplicates(subset=['location_id'])
+                self.save_to_bigquery(
+                    df_locations_checkpoint,
+                    'locationID'
                 )
                 # Try to save some memory
-                del dfs
+                # del dfs
+                # del df_locations_checkpoint
+                # gc.collect()
                 dfs = []
             
             sleep(search_criterion.time_to_pan)
@@ -800,7 +806,7 @@ class LocationIDScraper(MainMapScraper):
         if len(dfs) > 0:
             df_locations = pd.concat(dfs, ignore_index=True)\
                 .drop_duplicates(subset=['location_id'])
-            self.save_checkpoint(df_locations, "df_location_ids")
+            self.save_to_bigquery(df_locations, "locationID")
             logger.info("All location IDs scraped (that we could)!")
             return df_locations
         
