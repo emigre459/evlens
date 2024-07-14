@@ -17,6 +17,9 @@ RUN unzip /tmp/chromedriver.zip -d /usr/local/bin/
 # Install poetry
 # RUN pip install --upgrade pip poetry
 
+# Get useful tools for running scripts
+RUN apt install screen net-tools -y
+
 # Copy over code
 RUN mkdir code/
 WORKDIR code/
@@ -25,9 +28,9 @@ COPY scripts/ ./scripts
 
 # Install the project and dependencies
 # RUN poetry install --no-dev --no-interaction
-RUN pip install --upgrade pip
+RUN pip install --upgrade pip glances
 ARG SDIST
 ADD $SDIST $SDIST
 RUN pip install $SDIST
 
-CMD ["python", "tests/test_scraping.py"]
+CMD ["python", "tests/test_mainmap_scraping.py"]

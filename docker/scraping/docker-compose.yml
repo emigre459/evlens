@@ -18,6 +18,8 @@ services:
       - $HOME/.config/gcloud:/app/.config/gcloud
     shm_size: '32gb'
     platform: "linux/amd64"
+    ports:
+      - "4444:4444"
     # Un-comment the following lines to enable interactive shell for debugging
     # tty: true
     # stdin_open: true
