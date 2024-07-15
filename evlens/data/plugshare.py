@@ -177,14 +177,23 @@ class SearchCriterion():
         longitude: float,
         radius_in_miles: float,
         search_cell_id: str,
+        search_cell_id_type: str,
         wait_time_for_map_pan: float
     ):
         self.cell_id = search_cell_id
+        self.cell_type = search_cell_id_type # Can be "NREL" or "Manual"
         self.latitude = latitude
         self.longitude = longitude
         self.radius = radius_in_miles
         self.time_to_pan = wait_time_for_map_pan
-
+        
+    def __str__(self):
+        out = f"Search cell of type '{self.cell_type}' at lat/long ({self.latitude}, {self.longitude}), with a search radius of {self.radius} miles."
+        
+        return out
+        
+    def __repr__(self):
+        return str(self)
 
 class MainMapScraper:
 
