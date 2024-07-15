@@ -34,5 +34,11 @@
       "type": "FLOAT64",
       "mode": "REQUIRED",
       "description": "LONG of hexagonal search cell used. Can be used for rough approx of location LONG."
+    },
+    {
+      "name": "search_cell_id",
+      "type": "STRING",
+      "mode": "REQUIRED",
+      "description": "id column from searchTiles table"
     }
   ]

@@ -175,8 +175,10 @@ class SearchCriterion():
         latitude: float,
         longitude: float,
         radius_in_miles: float,
+        search_cell_id: str,
         wait_time_for_map_pan: float
     ):
+        self.cell_id = search_cell_id
         self.latitude = latitude
         self.longitude = longitude
         self.radius = radius_in_miles
@@ -796,6 +798,7 @@ class LocationIDScraper(MainMapScraper):
                 'location_id': location_ids,
                 'search_cell_latitude': [search_criterion.latitude] * num_locations_found,
                 'search_cell_longitude': [search_criterion.longitude] * num_locations_found,
+                'search_cell_id': [search_criterion.cell_id] * num_locations_found
             }))
             
             # Save checkpoint

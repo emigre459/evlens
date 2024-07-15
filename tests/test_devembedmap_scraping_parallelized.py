@@ -17,6 +17,7 @@ TEST_CRITERION = SearchCriterion(
     TEST_COORDS[0],
     TEST_COORDS[1],
     RADIUS,
+    '811d4a85-037a-4616-b944-2559c96ae459', # fake
     SLEEP_FOR_IFRAME_PAN
 )
 
