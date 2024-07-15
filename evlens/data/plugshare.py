@@ -35,8 +35,9 @@ logger = setup_logger(__name__)
 
 
 ALLOWABLE_PLUG_TYPES = [
-    # 'Tesla Supercharger',
+    'Tesla Supercharger',
     'SAE Combo DC CCS',
+    'CHAdeMO',
     # 'J-1772'
 ]
 

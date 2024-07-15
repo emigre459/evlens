@@ -10,7 +10,7 @@ def setup_logger(
     default_level=logging.INFO,
     filepath=None,
     align_all_loggers=False,
-    send_to_gcp: bool = True
+    send_to_gcp: bool = False
 ):
     '''
     Sets up logging consistently across modules 
