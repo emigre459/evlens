@@ -212,7 +212,7 @@ class BigQuery:
                 fk_subqueries.append(
                     f"ADD FOREIGN KEY({d['key']}) references {d['foreign_table']}({d['foreign_column']}) NOT ENFORCED"
                 )
-            foreign_key_subquery = '\n'.join(fk_subqueries)
+            foreign_key_subquery = ',\n'.join(fk_subqueries)
             
             query = f"""
             ALTER table {table_id} ADD primary key({', '.join(primary_key_columns)}) NOT ENFORCED,

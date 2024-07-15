@@ -1,13 +1,7 @@
 [
     {
-      "name": "id",
-      "type": "STRING",
-      "mode": "REQUIRED",
-      "description": "Primary key of table (UUID4)"
-    },
-    {
-        "name": "nrel_api_id",
-        "type": "STRING",
+        "name": "id",
+        "type": "INTEGER",
         "mode": "REQUIRED",
         "description": "ID of the station from the NREL API"
       },
