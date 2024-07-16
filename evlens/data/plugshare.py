@@ -735,14 +735,22 @@ class LocationIDScraper(MainMapScraper):
         map_iframe = self.find_and_use_map_iframe()
 
         # Grab map pins seen for chargers in map viewport
+        # Can't do visibility check as some are hidden forever
         try:
-            pins = self.wait.until(EC.visibility_of_all_elements_located((
+            # Have to do a wait to make sure we can grab them at all
+            sleep(search_criterion.time_to_pan)
+            
+            # Now we grab ALL of them
+            pins = self.driver.find_elements(
                 By.CSS_SELECTOR,
                 'img[src="https://maps.gstatic.com/mapfiles/transparent.png"]'
-            )))
+            )
             
-        except TimeoutException:
-            logger.error("No pins found here, moving on!")
+            # Filter out the hidden pins
+            pins = [p for p in pins if p.is_displayed()]
+            
+        except (TimeoutException, NoSuchElementException):
+            logger.error("No pins found here, moving on!", exc_info=True)
             return None
 
         num_pins_in_view = len(pins)
@@ -758,15 +766,30 @@ class LocationIDScraper(MainMapScraper):
                 self.search_location(search_criterion)
                 map_iframe = self.find_and_use_map_iframe()
 
-                pins = self.wait.until(EC.visibility_of_all_elements_located((
-                    By.CSS_SELECTOR,
-                    'img[src="https://maps.gstatic.com/mapfiles/transparent.png"]'
-                )))
+                try:
+                    # Have to do a wait to make sure we can grab them at all
+                    sleep(search_criterion.time_to_pan)
+                    
+                    pins = self.driver.find_elements(
+                        By.CSS_SELECTOR,
+                        'img[src="https://maps.gstatic.com/mapfiles/transparent.png"]'
+                    )
+                    
+                    # Filter out the hidden pins
+                    pins = [p for p in pins if p.is_displayed()]
+                    
+                except (TimeoutException, NoSuchElementException):
+                    logger.error("Couldn't find any pins...", exc_info=True)
 
             try:
                 location_ids.append(self.parse_location_link(pins[i]))
+            except IndexError as e:
+                logger.error("Did we get a different number of pins on another try? Original number of pins was %s, seeing %s now",
+                             num_pins_in_view,
+                             len(pins))
+                raise e
             except (ElementClickInterceptedException, ElementNotInteractableException):
-                logger.error("Pin %s not clickable", i, exc_info=True)
+                logger.debug("Pin %s not clickable", i, exc_info=True)
             except (NoSuchElementException):
                 logger.error("Pin %s not found weirdly...", i, exc_info=True)
                 
@@ -800,6 +823,13 @@ class LocationIDScraper(MainMapScraper):
             if location_ids is None:
                 continue
             
+            if search_criterion.cell_type == 'NREL':
+                cell_id_column = 'search_cell_id_nrel'
+                unused_cell_id_column = 'search_cell_id'
+            else:
+                cell_id_column = 'search_cell_id'
+                unused_cell_id_column = 'search_cell_id_nrel'
+            
             num_locations_found = len(location_ids)
             dfs.append(pd.DataFrame({
                 'id': BigQuery.make_uuid(),
@@ -808,7 +838,8 @@ class LocationIDScraper(MainMapScraper):
                 'location_id': location_ids,
                 'search_cell_latitude': [search_criterion.latitude] * num_locations_found,
                 'search_cell_longitude': [search_criterion.longitude] * num_locations_found,
-                'search_cell_id': [search_criterion.cell_id] * num_locations_found
+                cell_id_column: [search_criterion.cell_id] * num_locations_found,
+                unused_cell_id_column: [None] * num_locations_found
             }))
             
             # Save checkpoint

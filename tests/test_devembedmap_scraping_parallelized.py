@@ -23,7 +23,7 @@ if __name__ == '__main__':
     """
     search_tiles = bq.query_to_dataframe(query)
     
-    def make_criteria(search_tile: SearchCriterion, tile_type: str, map_pan_time: float = 1.5):
+    def make_criteria(search_tile: SearchCriterion, tile_type: str, map_pan_time: float = 2):
         return SearchCriterion(
             latitude=search_tile.latitude,
             longitude=search_tile.longitude,
