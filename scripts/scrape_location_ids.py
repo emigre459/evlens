@@ -1,21 +1,52 @@
+from typing import Literal, Union
+import os
 from time import time
-from evlens.data.plugshare import LocationIDScraper, SearchCriterion
+from evlens.data.plugshare import ParallelLocationIDScraper, SearchCriterion
+from evlens.data.google_cloud import BigQuery
+from evlens.concurrency import parallelized_data_processing
+
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 import pandas as pd
 from tqdm import tqdm
+import pandas as pd
 
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
 
 from datetime import date
 TODAY_STRING = date.today().strftime("%m-%d-%Y")
-DEFAULT_SAVE_PATH = f"./data/external/plugshare/{TODAY_STRING}/"
 
-SELENIUM_WAIT_TIME = 3
-SLEEP_FOR_IFRAME_PAN = 1.5 # this has been tested but not in headless mode, maybe can go faster?
 
-TEST_COORDS = (40.7525834,-73.9999498) # Lat, long
-RADIUS = 1 # miles
+def make_criteria(
+    search_tile: pd.Series,
+    tile_type: Union[Literal['Manual'], Literal['NREL']],
+    map_pan_time: float = 3
+) -> SearchCriterion:
+    '''
+    Using a geographically-bounded search tile, generates a SearchCriterion object representing it.
+
+    Parameters
+    ----------
+    search_tile : pd.Series
+        A pandas Series representing data for a single search cell. Expected to have, at a minimum, index labels of ['latitude', 'longitude', 'cell_radius_mi', 'id']
+    tile_type : Union[Literal[&#39;Manual&#39;], Literal[&#39;NREL&#39;]]
+        Indicates which type of search tile (brute force manual or NREL-derived) we are using
+    map_pan_time : float, optional
+        Timeout (in seconds) used for waiting for the map to do something, be that pan to a new location or load its pins up fully, by default 3
+
+    Returns
+    -------
+    SearchCriterion
+        SearchCriterion object that can be fed to our location scraper
+    '''
+    return SearchCriterion(
+        latitude=search_tile.latitude,
+        longitude=search_tile.longitude,
+        radius_in_miles=search_tile.cell_radius_mi,
+        search_cell_id=search_tile.id,
+        search_cell_id_type=tile_type,
+        wait_time_for_map_pan=map_pan_time
+    )
 
 
 #TODO: tune how long we need to sleep and timeout
@@ -23,49 +54,50 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "map_tile_filepath",
+        "map_tile_query",
         type=str,
-        help="The filepath to the map tile coordinates pickle file (dataframe). If run from repo root, commonly the value is 'references/h3_hexagon_coordinates.pkl'"
+        help="SQL query to pull down search tiles for systematically scraping location IDs by geographic space/tile. Will be applied to Google BigQuery to get tile data such as lat/long."
     )
     parser.add_argument(
-        "--output_dir",
+        "--search_tile_type",
         type=str,
-        default=DEFAULT_SAVE_PATH,
-        help="The directory to save the scraped data in"
+        default='NREL',
+        help="Whether our brute force ('Manual') search tiles were used or our more focused (but less comprehensive) NREL-derived ones were."
     )
     parser.add_argument(
         "--starting_criterion_index",
         type=int,
         default=0,
-        help="The starting index for the criterion (default: 0). Useful for restarting from a checkpoint file (e.g. start at i+1 if file is marked as `_{i}.pkl`)"
+        help="The starting index for the criterion (default: 0). Useful for restarting from a checkpoint in case the code breaks before completing"
     )
     args = parser.parse_args()
     
-    lis = LocationIDScraper(
-        args.output_dir,
-        timeout=SELENIUM_WAIT_TIME,
-        headless=True
+    # Get the search tiles from BigQuery
+    bq = BigQuery()
+    search_tiles = bq.query_to_dataframe(args.map_tile_query)
+    
+    tqdm.pandas(desc="Creating SearchCriterion objects")
+    tiles = search_tiles.progress_apply(
+        make_criteria,
+        axis=1,
+        tile_type=args.search_tile_type,
+        map_pan_time=3
     )
     
-    # Grab our map of USA with hexagonal tiles for searching
-    # Should have columns [latitude, longitude, cell_area_sq_miles]
-    df_map_tiles = pd.read_pickle(args.map_tile_filepath)
+    # Setup save directory so we don't have a race condition setting it up
+    error_path = f"data/external/plugshare/{TODAY_STRING}/errors/"
+    if not os.path.exists(error_path):
+        logger.warning("Error screenshot save filepath does not exist, creating it...")
+        os.makedirs(error_path)
     
-    #TODO: build in functionality for starting from a checkpoint file i+1
-    criteria = []
-    
-    for _, row in tqdm(
-        df_map_tiles.iterrows(),
-        desc='Building search criteria from gridded map',
-        total=len(df_map_tiles)
-    ):
-        criteria.append(SearchCriterion(
-            row['latitude'],
-            row['longitude'],
-            row['cell_radius_miles'],
-            wait_time_for_map_pan=SLEEP_FOR_IFRAME_PAN
-        ))
-    df_location_ids = lis.run(
-        criteria[args.starting_criterion_index:],
-        progress_bar_start=args.starting_criterion_index
+    #TODO: make checkpoint resumption better (currently doesn't work for all but the first worker...)
+    results = parallelized_data_processing(
+        ParallelLocationIDScraper,
+        tiles[args.starting_criterion_index:],
+        n_jobs=-1,
+        error_screenshot_savepath=error_path,
+        timeout=3,
+        page_load_pause=0,
+        headless=True,
+        progress_bars=False
     )

@@ -4,6 +4,8 @@ from evlens.data.plugshare import ParallelLocationIDScraper, SearchCriterion
 from evlens.concurrency import parallelized_data_processing
 from evlens.data.google_cloud import BigQuery
 
+import pandas as pd
+
 
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
@@ -23,7 +25,7 @@ if __name__ == '__main__':
     """
     search_tiles = bq.query_to_dataframe(query)
     
-    def make_criteria(search_tile: SearchCriterion, tile_type: str, map_pan_time: float = 2):
+    def make_criteria(search_tile: pd.Series, tile_type: str, map_pan_time: float = 2):
         return SearchCriterion(
             latitude=search_tile.latitude,
             longitude=search_tile.longitude,
@@ -33,7 +35,7 @@ if __name__ == '__main__':
             wait_time_for_map_pan=map_pan_time
         )
 
-    tiles = search_tiles.apply(make_criteria, axis=1, tile_type='NREL')
+    tiles = search_tiles.apply(make_criteria, axis=1, tile_type='NREL', map_pan_time=3)
     
     start_time = time()
     N_JOBS = 4
