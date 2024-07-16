@@ -35,6 +35,8 @@ db-dtypes = "^1.2.0"
 geopandas = "^1.0.1"
 tenacity = "^8.5.0"
 google-cloud-logging = "^3.10.0"
+selenium-wire-2 = "^0.2.1"
+nest-asyncio = "^1.6.0"
 
 
 [build-system]

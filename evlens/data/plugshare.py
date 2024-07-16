@@ -6,9 +6,11 @@ import re
 from typing import Tuple, Set, Union, List
 from urllib.parse import urlparse
 
-from joblib import dump as joblib_dump
+from json import loads
 
-from selenium import webdriver
+# from selenium import webdriver
+from seleniumwire2.utils import decode
+from seleniumwire2 import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -615,6 +617,14 @@ class ParallelMainMapScraper(MainMapScraper):
     
     
 class LocationIDScraper(MainMapScraper):
+    
+    def _catch_api_response(self, response) -> pd.DataFrame:
+        body = decode(response.response.body, response.response.headers.get("Content-Encoding", "identity"))
+
+        df = pd.DataFrame(loads(body))
+        del response
+        
+        return df
     
     def pick_plug_filters(
         self,
