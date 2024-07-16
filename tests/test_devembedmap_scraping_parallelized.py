@@ -2,6 +2,8 @@ from time import time
 import os
 from evlens.data.plugshare import ParallelLocationIDScraper, SearchCriterion
 from evlens.concurrency import parallelized_data_processing
+from evlens.data.google_cloud import BigQuery
+
 
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
@@ -9,23 +11,31 @@ logger = setup_logger(__name__)
 from datetime import date
 TODAY_STRING = date.today().strftime("%m-%d-%Y")
 
-# Moynihan Train Station - should have only one pin for CCS
-TEST_COORDS = (40.7525834,-73.9999498) # Lat, long
-RADIUS = 1 # miles
-SLEEP_FOR_IFRAME_PAN = 1.5
-TEST_CRITERION = SearchCriterion(
-    TEST_COORDS[0],
-    TEST_COORDS[1],
-    RADIUS,
-    '811d4a85-037a-4616-b944-2559c96ae459', # fake
-    SLEEP_FOR_IFRAME_PAN
-)
-
 
 if __name__ == '__main__':
-    start_time = time()
     TILE_COUNT = 12
-    tiles = [TEST_CRITERION] * TILE_COUNT
+    
+    bq = BigQuery()
+    query = f"""
+    SELECT *
+    FROM `{bq._make_table_id('plugshare', 'searchTilesNREL')}`
+    LIMIT {TILE_COUNT}
+    """
+    search_tiles = bq.query_to_dataframe(query)
+    
+    def make_criteria(search_tile: SearchCriterion, tile_type: str, map_pan_time: float = 1.5):
+        return SearchCriterion(
+            latitude=search_tile.latitude,
+            longitude=search_tile.longitude,
+            radius_in_miles=search_tile.cell_radius_mi,
+            search_cell_id=search_tile.id,
+            search_cell_id_type=tile_type,
+            wait_time_for_map_pan=map_pan_time
+        )
+
+    tiles = search_tiles.apply(make_criteria, axis=1, tile_type='NREL')
+    
+    start_time = time()
     N_JOBS = 4
     
     # Setup save directory so we don't have a race condition setting it up

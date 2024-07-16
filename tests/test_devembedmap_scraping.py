@@ -30,6 +30,8 @@ if __name__ == '__main__':
         TEST_COORDS[0],
         TEST_COORDS[1],
         RADIUS,
+        1234, # fake,
+        'Manual',
         SLEEP_FOR_IFRAME_PAN
     )
     df_location_ids = lis.run([sc])
