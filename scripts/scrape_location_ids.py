@@ -11,7 +11,7 @@ from tqdm import tqdm
 import pandas as pd
 
 from evlens.logs import setup_logger
-logger = setup_logger(__name__)
+logger = setup_logger(__name__, send_to_gcp=True)
 
 from datetime import date
 TODAY_STRING = date.today().strftime("%m-%d-%Y")
