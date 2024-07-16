@@ -38,13 +38,13 @@
     {
       "name": "search_cell_id",
       "type": "STRING",
-      "mode": "REQUIRED",
+      "mode": "NULLABLE",
       "description": "id column from searchTiles table"
     },
     {
       "name": "search_cell_id_nrel",
       "type": "INTEGER",
-      "mode": "REQUIRED",
+      "mode": "NULLABLE",
       "description": "id column from searchTilesNREL table"
     }
   ]
