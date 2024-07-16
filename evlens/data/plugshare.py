@@ -784,7 +784,8 @@ class LocationIDScraper(MainMapScraper):
             try:
                 location_ids.append(self.parse_location_link(pins[i]))
             except IndexError as e:
-                logger.error("Did we get a different number of pins on another try? Original number of pins was %s, seeing %s now",
+                logger.error("Did we get a different number of pins on another try for cell ID %s? Original number of pins was %s, seeing %s now",
+                             search_criterion.cell_id,
                              num_pins_in_view,
                              len(pins))
                 raise e
