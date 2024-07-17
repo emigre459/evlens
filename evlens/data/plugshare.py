@@ -638,7 +638,7 @@ class LocationIDScraper(MainMapScraper):
             return df
         
         else:
-            logger.error("Response code is %s, moving on", r.status_code)
+            logger.error("Response code is %s, moving on", r.response.status_code)
             return None
     
     def pick_plug_filters(
@@ -820,7 +820,7 @@ class LocationIDScraper(MainMapScraper):
                     cell_id_column: [search_criterion.cell_id] * num_locations_found,
                     unused_cell_id_column: [None] * num_locations_found,
                     'under_repair': df_locations_found['under_repair']
-                }))
+                }).drop_duplicates(subset=['location_id']))
             except KeyError as e:
                 logger.error("Something went wrong with appending the data, running df.info() before raising error...")
                 df_locations_found.info()
