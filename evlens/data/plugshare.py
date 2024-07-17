@@ -32,6 +32,11 @@ from tenacity import retry, wait_random_exponential
 from evlens import get_current_datetime
 from evlens.data.google_cloud import upload_file, BigQuery
 
+import logging
+# Reduce noisy logging from selenium-wire-2
+selenium_logger = logging.getLogger('seleniumwire')
+selenium_logger.setLevel(logging.ERROR)
+
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
 
@@ -786,7 +791,7 @@ class LocationIDScraper(MainMapScraper):
         for i, search_criterion in enumerate(iterator):
             self.search_location(search_criterion)
             df_locations_found = self.grab_location_ids(search_criterion)
-            if df_locations_found is None:
+            if df_locations_found is None or df_locations_found.empty:
                 continue
             
             if search_criterion.cell_type == 'NREL':
@@ -797,17 +802,24 @@ class LocationIDScraper(MainMapScraper):
                 unused_cell_id_column = 'search_cell_id_nrel'
             
             num_locations_found = len(df_locations_found)
-            dfs.append(pd.DataFrame({
-                'id': BigQuery.make_uuid(),
-                'parsed_datetime': [get_current_datetime(date_delimiter=None, time_delimiter=None)] * num_locations_found,
-                'plug_types': df_locations_found['connector_types'].str.join(';'),
-                'location_id': df_locations_found['id'].astype(str),
-                'latitude': df_locations_found['latitude'],
-                'longitude': df_locations_found['longitude'],
-                cell_id_column: [search_criterion.cell_id] * num_locations_found,
-                unused_cell_id_column: [None] * num_locations_found,
-                'under_repair': df_locations_found['under_repair']
-            }))
+            print(f"{num_locations_found=:,}")
+            try:
+                dfs.append(pd.DataFrame({
+                    'id': BigQuery.make_uuid(),
+                    'parsed_datetime': [get_current_datetime(date_delimiter=None, time_delimiter=None)] * num_locations_found,
+                    'plug_types': df_locations_found['connector_types'].str.join(';'),
+                    'location_id': df_locations_found['id'].astype(str),
+                    'latitude': df_locations_found['latitude'],
+                    'longitude': df_locations_found['longitude'],
+                    cell_id_column: [search_criterion.cell_id] * num_locations_found,
+                    unused_cell_id_column: [None] * num_locations_found,
+                    'under_repair': df_locations_found['under_repair']
+                }))
+            except KeyError as e:
+                logger.error("Something went wrong with appending the data, running df.info() before raising error...")
+                df_locations_found.info()
+                raise e
+                
             
             # Save checkpoint
             if len(dfs) % self.save_every == 0 \
