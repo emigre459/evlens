@@ -32,13 +32,15 @@ from tenacity import retry, wait_random_exponential
 from evlens import get_current_datetime
 from evlens.data.google_cloud import upload_file, BigQuery
 
+from evlens.logs import setup_logger
+logger = setup_logger(__name__)
+
 import logging
 # Reduce noisy logging from selenium-wire-2
 selenium_logger = logging.getLogger('seleniumwire')
 selenium_logger.setLevel(logging.ERROR)
-
-from evlens.logs import setup_logger
-logger = setup_logger(__name__)
+selenium_logger2 = logging.getLogger('seleniumwire2')
+selenium_logger2.setLevel(logging.ERROR)
 
 
 ALLOWABLE_PLUG_TYPES = [
@@ -627,12 +629,17 @@ class LocationIDScraper(MainMapScraper):
             r'https://api.plugshare.com/v3/locations/region?',
             timeout=self.timeout
         )
-        body = decode(r.response.body, r.response.headers.get("Content-Encoding", "identity"))
+        if r.response.status_code == 200 or r.response.status_code == '200':
+            body = decode(r.response.body, r.response.headers.get("Content-Encoding", "identity"))
 
-        df = pd.DataFrame(loads(body))
-        del self.driver.requests
+            df = pd.DataFrame(loads(body))
+            del self.driver.requests
+            
+            return df
         
-        return df
+        else:
+            logger.error("Response code is %s, moving on", r.status_code)
+            return None
     
     def pick_plug_filters(
         self,
