@@ -822,8 +822,7 @@ class LocationIDScraper(MainMapScraper):
                 
             
             # Save checkpoint
-            if len(dfs) % self.save_every == 0 \
-            and len(dfs) > 0:
+            if len(dfs) >= self.save_every:
                 df_locations_checkpoint = pd.concat(dfs, ignore_index=True)\
                     .drop_duplicates(subset=['location_id'])
                 self.save_to_bigquery(

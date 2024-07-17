@@ -99,5 +99,6 @@ if __name__ == '__main__':
         timeout=3,
         page_load_pause=0,
         headless=True,
-        progress_bars=False
+        progress_bars=False,
+        save_every=10_000
     )
