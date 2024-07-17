@@ -618,11 +618,15 @@ class ParallelMainMapScraper(MainMapScraper):
     
 class LocationIDScraper(MainMapScraper):
     
-    def _catch_api_response(self, response) -> pd.DataFrame:
-        body = decode(response.response.body, response.response.headers.get("Content-Encoding", "identity"))
+    def _catch_api_response(self) -> pd.DataFrame:
+        r = self.driver.wait_for_request(
+            r'https://api.plugshare.com/v3/locations/region?',
+            timeout=self.timeout
+        )
+        body = decode(r.response.body, r.response.headers.get("Content-Encoding", "identity"))
 
         df = pd.DataFrame(loads(body))
-        del response
+        del self.driver.requests
         
         return df
     
@@ -739,7 +743,7 @@ class LocationIDScraper(MainMapScraper):
     def grab_location_ids(
         self,
         search_criterion: SearchCriterion
-        ) -> List[str]:
+        ) -> pd.DataFrame:
         
         # Find the map iframe and move so it's in full view for scraping
         map_iframe = self.find_and_use_map_iframe()
@@ -750,61 +754,12 @@ class LocationIDScraper(MainMapScraper):
             # Have to do a wait to make sure we can grab them at all
             sleep(search_criterion.time_to_pan)
             
-            # Now we grab ALL of them
-            pins = self.driver.find_elements(
-                By.CSS_SELECTOR,
-                'img[src="https://maps.gstatic.com/mapfiles/transparent.png"]'
-            )
-            
-            # Filter out the hidden pins
-            pins = [p for p in pins if p.is_displayed()]
+            # Capture the API response that populates the map
+            return self._catch_api_response()
             
         except (TimeoutException, NoSuchElementException):
             logger.error("No pins found here, moving on!", exc_info=True)
             return None
-
-        num_pins_in_view = len(pins)
-        
-        # Pull location ID from pin 
-        # and then search again to pull map frame back to see all pins
-        # Have to do this each time due to map panning when pin click happens
-        # And have to re-find pins so WebElement for each pin doesn't go stale
-        location_ids = []
-        for i in range(num_pins_in_view):
-        # Do another search if it's not the first time
-            if i != 0:
-                self.search_location(search_criterion)
-                map_iframe = self.find_and_use_map_iframe()
-
-                try:
-                    # Have to do a wait to make sure we can grab them at all
-                    sleep(search_criterion.time_to_pan)
-                    
-                    pins = self.driver.find_elements(
-                        By.CSS_SELECTOR,
-                        'img[src="https://maps.gstatic.com/mapfiles/transparent.png"]'
-                    )
-                    
-                    # Filter out the hidden pins
-                    pins = [p for p in pins if p.is_displayed()]
-                    
-                except (TimeoutException, NoSuchElementException):
-                    logger.error("Couldn't find any pins...", exc_info=True)
-
-            try:
-                location_ids.append(self.parse_location_link(pins[i]))
-            except IndexError as e:
-                logger.error("Did we get a different number of pins on another try for cell ID %s? Original number of pins was %s, seeing %s now",
-                             search_criterion.cell_id,
-                             num_pins_in_view,
-                             len(pins))
-                raise e
-            except (ElementClickInterceptedException, ElementNotInteractableException):
-                logger.debug("Pin %s not clickable", i, exc_info=True)
-            except (NoSuchElementException):
-                logger.error("Pin %s not found weirdly...", i, exc_info=True)
-                
-        return location_ids
     
     def run(
         self,
@@ -830,8 +785,8 @@ class LocationIDScraper(MainMapScraper):
         
         for i, search_criterion in enumerate(iterator):
             self.search_location(search_criterion)
-            location_ids = self.grab_location_ids(search_criterion)
-            if location_ids is None:
+            df_locations_found = self.grab_location_ids(search_criterion)
+            if df_locations_found is None:
                 continue
             
             if search_criterion.cell_type == 'NREL':
@@ -841,16 +796,17 @@ class LocationIDScraper(MainMapScraper):
                 cell_id_column = 'search_cell_id'
                 unused_cell_id_column = 'search_cell_id_nrel'
             
-            num_locations_found = len(location_ids)
+            num_locations_found = len(df_locations_found)
             dfs.append(pd.DataFrame({
                 'id': BigQuery.make_uuid(),
                 'parsed_datetime': [get_current_datetime(date_delimiter=None, time_delimiter=None)] * num_locations_found,
-                'plug_types_searched': [";".join(plugs_to_include)] * num_locations_found,
-                'location_id': location_ids,
-                'search_cell_latitude': [search_criterion.latitude] * num_locations_found,
-                'search_cell_longitude': [search_criterion.longitude] * num_locations_found,
+                'plug_types': df_locations_found['connector_types'].str.join(';'),
+                'location_id': df_locations_found['id'].astype(str),
+                'latitude': df_locations_found['latitude'],
+                'longitude': df_locations_found['longitude'],
                 cell_id_column: [search_criterion.cell_id] * num_locations_found,
-                unused_cell_id_column: [None] * num_locations_found
+                unused_cell_id_column: [None] * num_locations_found,
+                'under_repair': df_locations_found['under_repair']
             }))
             
             # Save checkpoint
@@ -874,11 +830,11 @@ class LocationIDScraper(MainMapScraper):
         self.driver.quit()
 
         if len(dfs) > 0:
-            df_locations = pd.concat(dfs, ignore_index=True)\
+            df_locations_found = pd.concat(dfs, ignore_index=True)\
                 .drop_duplicates(subset=['location_id'])
-            self.save_to_bigquery(df_locations, "locationID")
+            self.save_to_bigquery(df_locations_found, "locationID")
             logger.info("All location IDs scraped (that we could)!")
-            return df_locations
+            return df_locations_found
         
         else:
             logger.error("Something went horribly wrong, why do we have ZERO locations?!")
