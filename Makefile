@@ -99,7 +99,7 @@ build_and_push_to_gh:
 refresh_vm_from_new_build:
 	@echo "Don't forget to activate your venv first!"
 	@git pull
-	@pip install --upgrade --force-reinstall dist/evlens-0.1.0-py3-none-any.whl 
+	@pip install --upgrade --force-reinstall $(ls -t dist/*.whl | head -n 1)
 
 
 ## Test python environment is setup correctly
