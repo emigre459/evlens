@@ -569,8 +569,7 @@ class MainMapScraper:
                 all_checkins.append(df_checkins)
             
             # Save to BQ
-            if len(all_stations) % self.save_every == 0 \
-            and len(all_stations) > 0:
+            if len(all_stations) >= self.save_every:
                 logger.info(f"Saving checkpoint at index {i} and location {location_id}")
                 
                 df_stations_checkpoint = pd.concat(all_stations, ignore_index=True)
@@ -822,7 +821,8 @@ class LocationIDScraper(MainMapScraper):
                 
             
             # Save checkpoint
-            if len(dfs) >= self.save_every:
+            if len(dfs) > 0 and sum([len(df) for df in dfs]) >= self.save_every:
+                logger.info("Saving checkpoint...")
                 df_locations_checkpoint = pd.concat(dfs, ignore_index=True)\
                     .drop_duplicates(subset=['location_id'])
                 self.save_to_bigquery(

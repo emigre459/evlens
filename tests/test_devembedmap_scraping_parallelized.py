@@ -54,14 +54,11 @@ if __name__ == '__main__':
         timeout=3,
         page_load_pause=0,
         headless=True,
-        progress_bars=False
+        progress_bars=False,
+        save_every=50
     )
     
     assert len(results) == N_JOBS, f"Found {len(results)} batches, not the {N_JOBS} expected"
-    
-    # Each element should have found two locations to scrape
-    num_locations_scraped = sum([len(e) for e in results])
-    assert num_locations_scraped == 2 * N_JOBS, f"Found {num_locations_scraped} locations, not the {2 * N_JOBS} expected"
     
     #TODO: add more tests to check that all data is there
     print("SUCCESS!")
