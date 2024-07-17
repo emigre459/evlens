@@ -12,10 +12,10 @@
       "description": "Date and time when scraping of this location ID was done"
     },
     {
-      "name": "plug_types_searched",
+      "name": "plug_types",
       "type": "STRING",
       "mode": "REQUIRED",
-      "description": "Semicolon-delimited list of strings indicating charger plug types included in parsing when this was scraped"
+      "description": "Semicolon-delimited list of plugs present in the location"
     },
     {
       "name": "location_id",
@@ -24,16 +24,16 @@
       "description": "Plugshare-specific unique ID for a charging station/location. STR for zero padding reasons"
     },
     {
-      "name": "search_cell_latitude",
+      "name": "latitude",
       "type": "FLOAT64",
       "mode": "REQUIRED",
-      "description": "LAT of hexagonal search cell used. Can be used for rough approx of location LAT."
+      "description": "LAT of station as reported by Plugshare"
     },
     {
-      "name": "search_cell_longitude",
+      "name": "longitude",
       "type": "FLOAT64",
       "mode": "REQUIRED",
-      "description": "LONG of hexagonal search cell used. Can be used for rough approx of location LONG."
+      "description": "LONG of station as reported by Plugshare"
     },
     {
       "name": "search_cell_id",
@@ -43,8 +43,14 @@
     },
     {
       "name": "search_cell_id_nrel",
-      "type": "INTEGER",
+      "type": "INT64",
       "mode": "NULLABLE",
       "description": "id column from searchTilesNREL table"
+    },
+    {
+      "name": "under_repair",
+      "type": "BOOL",
+      "mode": "NULLABLE",
+      "description": "Indicates if station is currently down for maintenance as of the parsing datetime"
     }
   ]
