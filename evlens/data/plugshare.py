@@ -624,7 +624,7 @@ class ParallelMainMapScraper(MainMapScraper):
     
 class LocationIDScraper(MainMapScraper):
     
-    def _catch_api_response(self) -> pd.DataFrame:
+    def _catch_api_response(self, search_cell_id: str) -> pd.DataFrame:
         try:
             r = self.driver.wait_for_request(
                 r'https://api.plugshare.com/v3/locations/region?',
@@ -639,15 +639,15 @@ class LocationIDScraper(MainMapScraper):
                 return df
             
             else:
-                logger.error("Response code is %s, moving on", r.response.status_code)
+                logger.error("Response code is %s for cell ID %s, moving on", r.response.status_code, search_cell_id)
                 return None
             
         except (TimeoutException, NoSuchElementException):
-            logger.error("No pins found here, moving on!", exc_info=False)
+            logger.error("No pins found in search cell %s, moving on!", search_cell_id, exc_info=False)
             return None
         
         except:
-            logger.error("Unknown exception when waiting for pin data", exc_info=True)
+            logger.error("Unknown exception when waiting for pin data in search cell %s", search_cell_id, exc_info=True)
     
     def pick_plug_filters(
         self,
@@ -764,6 +764,7 @@ class LocationIDScraper(MainMapScraper):
         search_criterion: SearchCriterion
         ) -> pd.DataFrame:
         
+        #TODO: test if this can be skipped now that we capture network traffic
         # Find the map iframe and move so it's in full view for scraping
         map_iframe = self.find_and_use_map_iframe()
 
@@ -771,7 +772,7 @@ class LocationIDScraper(MainMapScraper):
         sleep(search_criterion.time_to_pan)
             
         # Capture the API response that populates the map
-        return self._catch_api_response()
+        return self._catch_api_response(search_criterion.cell_id)
     
     def run(
         self,
