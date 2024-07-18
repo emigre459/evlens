@@ -102,3 +102,4 @@ if __name__ == '__main__':
         progress_bars=False,
         save_every=10_000
     )
+    print("Scraping done!")

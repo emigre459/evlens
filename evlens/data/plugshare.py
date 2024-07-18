@@ -625,21 +625,29 @@ class ParallelMainMapScraper(MainMapScraper):
 class LocationIDScraper(MainMapScraper):
     
     def _catch_api_response(self) -> pd.DataFrame:
-        r = self.driver.wait_for_request(
-            r'https://api.plugshare.com/v3/locations/region?',
-            timeout=self.timeout
-        )
-        if r.response.status_code == 200 or r.response.status_code == '200':
-            body = decode(r.response.body, r.response.headers.get("Content-Encoding", "identity"))
+        try:
+            r = self.driver.wait_for_request(
+                r'https://api.plugshare.com/v3/locations/region?',
+                timeout=self.timeout
+            )
+            if r.response.status_code == 200 or r.response.status_code == '200':
+                body = decode(r.response.body, r.response.headers.get("Content-Encoding", "identity"))
 
-            df = pd.DataFrame(loads(body))
-            del self.driver.requests
+                df = pd.DataFrame(loads(body))
+                del self.driver.requests
+                
+                return df
             
-            return df
-        
-        else:
-            logger.error("Response code is %s, moving on", r.response.status_code)
+            else:
+                logger.error("Response code is %s, moving on", r.response.status_code)
+                return None
+            
+        except (TimeoutException, NoSuchElementException):
+            logger.error("No pins found here, moving on!", exc_info=False)
             return None
+        
+        except:
+            logger.error("Unknown exception when waiting for pin data", exc_info=True)
     
     def pick_plug_filters(
         self,
@@ -759,18 +767,11 @@ class LocationIDScraper(MainMapScraper):
         # Find the map iframe and move so it's in full view for scraping
         map_iframe = self.find_and_use_map_iframe()
 
-        # Grab map pins seen for chargers in map viewport
-        # Can't do visibility check as some are hidden forever
-        try:
-            # Have to do a wait to make sure we can grab them at all
-            sleep(search_criterion.time_to_pan)
+        # Grab map pin data seen for chargers in map viewport
+        sleep(search_criterion.time_to_pan)
             
-            # Capture the API response that populates the map
-            return self._catch_api_response()
-            
-        except (TimeoutException, NoSuchElementException):
-            logger.error("No pins found here, moving on!", exc_info=True)
-            return None
+        # Capture the API response that populates the map
+        return self._catch_api_response()
     
     def run(
         self,
