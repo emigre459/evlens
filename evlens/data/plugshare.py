@@ -813,7 +813,7 @@ class LocationIDScraper(MainMapScraper):
             print(f"{num_locations_found=:,}")
             try:
                 dfs.append(pd.DataFrame({
-                    'id': BigQuery.make_uuid(),
+                    'id': [BigQuery.make_uuid() for _ in range(num_locations_found)],
                     'parsed_datetime': [get_current_datetime(date_delimiter=None, time_delimiter=None)] * num_locations_found,
                     'plug_types': df_locations_found['connector_types'].str.join(';'),
                     'location_id': df_locations_found['id'].astype(str),
