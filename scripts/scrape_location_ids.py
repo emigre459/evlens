@@ -97,7 +97,6 @@ if __name__ == '__main__':
         n_jobs=-1,
         error_screenshot_savepath=error_path,
         timeout=3,
-        page_load_pause=0,
         headless=True,
         progress_bars=False,
         save_every=10_000

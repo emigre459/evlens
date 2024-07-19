@@ -1,6 +1,6 @@
 #!/bin/bash
 sudo apt-get update && sudo apt-get upgrade -y
-sudo apt-get install unzip git install python3.11-venv -y
+sudo apt install unzip git python3.11-venv -y
 
 # install google chrome
 #TODO: need to update this to a newer key method, as apt-key is deprecated
