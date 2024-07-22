@@ -1,6 +1,7 @@
 from time import time
 from evlens.data.plugshare import LocationIDScraper, SearchCriterion
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from evlens.data.google_cloud import BigQuery
 
 # Electrify America in Springfield, VA mall parking lot
 TEST_LOCATION = 252784
@@ -16,6 +17,19 @@ TEST_COORDS = (40.7525834,-73.9999498) # Lat, long
 RADIUS = 1 # miles
 SLEEP_FOR_IFRAME_PAN = 1.5
 
+bq = BigQuery()
+id_of_interest = '0b8a3cc1-bcb6-440a-8dbd-4b84d1d795d5'
+cell_data = bq.query_to_dataframe(f"SELECT * from evlens.plugshare.searchTiles WHERE id = '{id_of_interest}'").loc[0]
+
+sc = SearchCriterion(
+    latitude=cell_data['latitude'],
+    longitude=cell_data['longitude'],
+    radius_in_miles=cell_data['cell_radius_mi'],
+    search_cell_id=cell_data['id'],
+    search_cell_id_type='Manual',
+    wait_time_for_map_pan=3
+)
+
 
 if __name__ == '__main__':
     start_time = time()
@@ -25,20 +39,8 @@ if __name__ == '__main__':
         headless=True,
         progress_bars=True
     )
-
-    sc = SearchCriterion(
-        TEST_COORDS[0],
-        TEST_COORDS[1],
-        RADIUS,
-        1234, # fake,
-        'Manual',
-        SLEEP_FOR_IFRAME_PAN
-    )
     df_location_ids = lis.run([sc])
 
     print(f"Took {time() - start_time} seconds to execute")
-    
     assert not df_location_ids.empty, "Scrape results empty"
-    
-    # Should return [563873, 574882]
     print(df_location_ids)
