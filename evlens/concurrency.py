@@ -5,6 +5,7 @@ import multiprocessing
 import numpy as np
 import ray
 import ray.exceptions
+import pandas as pd
 
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
@@ -29,7 +30,12 @@ def parse_n_jobs(n_jobs: Union[int, None]) -> int:
     return n_jobs
 
 
-def get_batches_by_worker(data, n_jobs):
+def get_batches_by_worker(
+    data: pd.DataFrame,
+    n_jobs: int,
+    checkpoint_values: List[Any] = None,
+    checkpoint_identifier: str = None
+):
     data_size = len(data)
     
     batch_size = math.floor(data_size / n_jobs)
@@ -51,8 +57,43 @@ def get_batches_by_worker(data, n_jobs):
     for start_idx, end_idx in zip(starting_indices, ending_indices):
         batches.append(data[start_idx:end_idx])
         
+    # Check if we can make new batches based off of checkpoint values
+    if checkpoint_identifier is not None and checkpoint_values is not None:
+        # Assume that checkpoint values are not needed themselves, but just the values in each batch AFTER checkpoint values
+        last_ones = data[data[checkpoint_identifier].isin(checkpoint_values)].copy()
+        # Add a column for batch_id to last_ones
+        last_ones['batch_id'] = np.nan
+
+        for idx, checkpoint_id in last_ones.iterrows():
+            for i, batch in enumerate(batches):
+                if (batch['id'] == checkpoint_id['id']).sum() > 0:
+                    last_ones.loc[idx, 'batch_id'] = i
+                
+        last_ones['batch_id'] = last_ones['batch_id'].astype(int)
+
+        # Retain only the ones with the highest index
+        last_ones.sort_index(inplace=True)
+        last_ones.drop_duplicates(subset=['batch_id'], keep='last', inplace=True)
+        
+        missing_batches = []
+        for i in range(n_jobs):
+            if (last_ones.batch_id == i).sum() == 0:
+                missing_batches.append(i)
+                
+        if len(missing_batches) > 0:
+            raise ValueError(f"Missing {len(missing_batches)} batches in the provided IDs, please go back further in the logs and find IDs for the following (zero-indexed) batches: {missing_batches}")
+        
+        # Regenerate batches from checkpoints
+        starting_indices = last_ones.index.tolist()
+        new_batches = []
+        for idx, b in zip(starting_indices, batches):
+            new_batches.append(b.loc[idx:])
+        batches = new_batches
+        
+    # Make sure we account for having more workers than batches needed
     if n_jobs > len(data):
         return [batch for batch in batches if len(batch) > 0]
+    
     return batches
     
 
@@ -62,6 +103,8 @@ def parallelized_data_processing(
     actor: Any,
     run_args: List[Any],
     n_jobs: int = -1,
+    checkpoint_values: List[Any] = None,
+    checkpoint_identifier: str = None,
     **kwargs
 ):
     
@@ -76,7 +119,12 @@ def parallelized_data_processing(
     )
     
     # Batch up in n_actors-sized batches across all run_args
-    run_arg_batches = get_batches_by_worker(run_args, n_jobs)
+    run_arg_batches = get_batches_by_worker(
+        run_args,
+        n_jobs,
+        checkpoint_values=checkpoint_values,
+        checkpoint_identifier=checkpoint_identifier
+    )
     
     # Make unique copies of each actor
     parallel_actors = [actor.remote(**kwargs) for _ in range(len(run_arg_batches))]

@@ -65,10 +65,16 @@ if __name__ == '__main__':
         help="Whether our brute force ('Manual') search tiles were used or our more focused (but less comprehensive) NREL-derived ones were."
     )
     parser.add_argument(
-        "--starting_criterion_index",
+        "--starting_ids",
+        default=None,
+        nargs='+',
+        help="The starting search tile ID(s) for the search criteria. Useful for restarting from a checkpoint in case the code breaks before completing. Should be passed as --starting_ids id1 id2 id3 ... with n_jobs ids."
+    )
+    parser.add_argument(
+        '--n_jobs',
         type=int,
-        default=0,
-        help="The starting index for the criterion (default: 0). Useful for restarting from a checkpoint in case the code breaks before completing"
+        default=-1,
+        help='Number of parallel workers to use. If -1, will use num_cpus - 1'
     )
     args = parser.parse_args()
     
@@ -95,6 +101,8 @@ if __name__ == '__main__':
         ParallelLocationIDScraper,
         tiles[args.starting_criterion_index:],
         n_jobs=-1,
+        checkpoint_values=args.starting_ids,
+        checkpoint_identifier='id',
         error_screenshot_savepath=error_path,
         timeout=3,
         headless=True,
