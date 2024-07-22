@@ -87,7 +87,7 @@ def get_batches_by_worker(
         starting_indices = last_ones.index.tolist()
         new_batches = []
         for idx, b in zip(starting_indices, batches):
-            new_batches.append(b.loc[idx:])
+            new_batches.append(b.loc[idx+1:])
         batches = new_batches
         
     # Make sure we account for having more workers than batches needed
