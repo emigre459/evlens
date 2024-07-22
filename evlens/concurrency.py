@@ -31,11 +31,10 @@ def parse_n_jobs(n_jobs: Union[int, None]) -> int:
 
 
 def get_batches_by_worker(
-    data: pd.DataFrame,
+    data: Any,
     n_jobs: int,
-    checkpoint_values: List[Any] = None,
-    checkpoint_identifier: str = None
-):
+    checkpoint_indices: List[Any] = None
+) -> List[Any]:
     data_size = len(data)
     
     batch_size = math.floor(data_size / n_jobs)
@@ -58,35 +57,10 @@ def get_batches_by_worker(
         batches.append(data[start_idx:end_idx])
         
     # Check if we can make new batches based off of checkpoint values
-    if checkpoint_identifier is not None and checkpoint_values is not None:
+    if checkpoint_indices is not None:
         # Assume that checkpoint values are not needed themselves, but just the values in each batch AFTER checkpoint values
-        last_ones = data[data[checkpoint_identifier].isin(checkpoint_values)].copy()
-        # Add a column for batch_id to last_ones
-        last_ones['batch_id'] = np.nan
-
-        for idx, checkpoint_id in last_ones.iterrows():
-            for i, batch in enumerate(batches):
-                if (batch['id'] == checkpoint_id['id']).sum() > 0:
-                    last_ones.loc[idx, 'batch_id'] = i
-                
-        last_ones['batch_id'] = last_ones['batch_id'].astype(int)
-
-        # Retain only the ones with the highest index
-        last_ones.sort_index(inplace=True)
-        last_ones.drop_duplicates(subset=['batch_id'], keep='last', inplace=True)
-        
-        missing_batches = []
-        for i in range(n_jobs):
-            if (last_ones.batch_id == i).sum() == 0:
-                missing_batches.append(i)
-                
-        if len(missing_batches) > 0:
-            raise ValueError(f"Missing {len(missing_batches)} batches in the provided IDs, please go back further in the logs and find IDs for the following (zero-indexed) batches: {missing_batches}")
-        
-        # Regenerate batches from checkpoints
-        starting_indices = last_ones.index.tolist()
         new_batches = []
-        for idx, b in zip(starting_indices, batches):
+        for idx, b in zip(checkpoint_indices, batches):
             new_batches.append(b.loc[idx+1:])
         batches = new_batches
         
@@ -95,6 +69,16 @@ def get_batches_by_worker(
         return [batch for batch in batches if len(batch) > 0]
     
     return batches
+
+
+def get_batch_indices_from_identifiers(
+    data: pd.DataFrame,
+    checkpoint_values: List[Any],
+    checkpoint_identifier: str
+) -> List[Any]:
+    
+    last_ones = data[data[checkpoint_identifier].isin(checkpoint_values)].copy()
+    return last_ones.index.tolist()
     
 
 #TODO: make it so you don't need to assume `run()` method name and can feed run()-ish method more than one arg
@@ -103,10 +87,9 @@ def parallelized_data_processing(
     actor: Any,
     run_args: List[Any],
     n_jobs: int = -1,
-    checkpoint_values: List[Any] = None,
-    checkpoint_identifier: str = None,
+    checkpoint_indices: List[Any] = None,
     **kwargs
-):
+) -> pd.DataFrame:
     
     # Just in case
     ray.shutdown()
@@ -115,15 +98,14 @@ def parallelized_data_processing(
     ray_context = ray.init(
         num_cpus=n_jobs,
         # num_gpus=0,
-        include_dashboard=True
+        include_dashboard=False
     )
     
     # Batch up in n_actors-sized batches across all run_args
     run_arg_batches = get_batches_by_worker(
         run_args,
         n_jobs,
-        checkpoint_values=checkpoint_values,
-        checkpoint_identifier=checkpoint_identifier
+        checkpoint_indices=checkpoint_indices
     )
     
     # Make unique copies of each actor

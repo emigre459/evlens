@@ -3,7 +3,7 @@ import os
 from time import time
 from evlens.data.plugshare import ParallelLocationIDScraper, SearchCriterion
 from evlens.data.google_cloud import BigQuery
-from evlens.concurrency import parallelized_data_processing
+from evlens.concurrency import parallelized_data_processing, get_batch_indices_from_identifiers
 
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 import pandas as pd
@@ -68,7 +68,7 @@ if __name__ == '__main__':
         "--starting_ids",
         default=None,
         nargs='+',
-        help="The starting search tile ID(s) for the search criteria. Useful for restarting from a checkpoint in case the code breaks before completing. Should be passed as --starting_ids id1 id2 id3 ... with n_jobs ids."
+        help="The starting search tile id values for the search criteria. Useful for restarting from a checkpoint in case the code breaks before completing. Should be passed as --starting_ids id1 id2 id3 ... with n_jobs ids."
     )
     parser.add_argument(
         '--n_jobs',
@@ -96,13 +96,19 @@ if __name__ == '__main__':
         logger.warning("Error screenshot save filepath does not exist, creating it...")
         os.makedirs(error_path)
     
-    #TODO: make checkpoint resumption better (currently doesn't work for all but the first worker...)
+    # Figure out if we have checkpoint data and use it if so
+    if args.starting_ids is not None:
+        checkpoint_indices = get_batch_indices_from_identifiers(
+            search_tiles,
+            args.starting_ids,
+            'id'
+        )
+    
     results = parallelized_data_processing(
         ParallelLocationIDScraper,
-        tiles[args.starting_criterion_index:],
+        tiles,
         n_jobs=-1,
-        checkpoint_values=args.starting_ids,
-        checkpoint_identifier='id',
+        checkpoint_indices=checkpoint_indices,
         error_screenshot_savepath=error_path,
         timeout=3,
         headless=True,
