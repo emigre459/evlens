@@ -99,6 +99,6 @@ if __name__ == '__main__':
         timeout=3,
         headless=True,
         progress_bars=False,
-        save_every=10_000
+        save_every=100
     )
     print("Scraping done!")
