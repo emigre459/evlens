@@ -289,7 +289,8 @@ class MainMapScraper:
         
         # Grab data needed for other tables before dropping columns
         df_evses = pd.DataFrame(df_station.loc[0, 'stations'])
-        df_checkins = pd.DataFrame(df_station.loc[0, 'reviews'])
+        df_checkins = pd.DataFrame(df_station.loc[0, 'reviews'])\
+            .drop(columns=['problem'])
         
         # We can return df_plugs if we want, but currently seem too detailed to be useful
         df_plugs = pd.DataFrame(df_evses['outlets'].explode().tolist())
@@ -355,6 +356,8 @@ class MainMapScraper:
             'available'
         ]
         df_evses = df_evses[cols_of_interest]
+        df_evses.station_id = df_evses.station_id.astype(str)
+        
         df_station['kilowatts_max'] = df_evses['kilowatts'].max()
         df_station['network'] = df_evses.loc[0, 'network_names']
         
@@ -565,6 +568,7 @@ class MainMapScraper:
 
         all_stations = []
         all_checkins = []
+        all_evses = []
         if self.use_tqdm:
             iterator = enumerate(tqdm(
                 locations,
@@ -580,12 +584,14 @@ class MainMapScraper:
 
             self.reject_all_cookies_dialog()                
             self.exit_login_dialog()
-            df_station, df_checkins = self.scrape_location(location_id)
+            df_station, df_checkins, df_evses = self.scrape_location(location_id)
             
             if not df_station.empty:
                 all_stations.append(df_station)
             if not df_checkins.empty:
                 all_checkins.append(df_checkins)
+            if not df_evses.empty:
+                all_evses.append(df_evses)
             
             # Save to BQ
             if len(all_stations) >= self.save_every:
@@ -593,6 +599,7 @@ class MainMapScraper:
                 
                 df_stations_checkpoint = pd.concat(all_stations, ignore_index=True)
                 df_checkins_checkpoint = pd.concat(all_checkins, ignore_index=True)
+                df_evses_checkpoint = pd.concat(all_evses, ignore_index=True)
                 self.save_to_bigquery(
                     df_stations_checkpoint,
                     'stations'
@@ -601,9 +608,14 @@ class MainMapScraper:
                     df_checkins_checkpoint,
                     'checkins'
                 )
+                self.save_to_bigquery(
+                    df_evses_checkpoint,
+                    'evses'
+                )
                 
                 all_stations = []
                 all_checkins = []
+                all_evses = []
 
             #TODO: tune between page switches
             logger.info(f"Sleeping for {self.page_load_pause} seconds")
@@ -615,6 +627,7 @@ class MainMapScraper:
         #TODO: add station location integers as column
         df_all_stations = pd.concat(all_stations, ignore_index=True)        
         df_all_checkins = pd.concat(all_checkins, ignore_index=True)
+        df_all_evses = pd.concat(all_evses, ignore_index=True)
         self.save_to_bigquery(
             df_all_stations,
             'stations'
@@ -623,9 +636,13 @@ class MainMapScraper:
             df_all_checkins,
             'checkins'
         )
+        self.save_to_bigquery(
+            df_all_evses,
+            'evses'
+        )
         
         logger.info("Scraping complete!")
-        return df_all_stations, df_all_checkins
+        return df_all_stations, df_all_checkins, df_all_evses
     
     
 @ray.remote(max_restarts=3, max_task_retries=3)

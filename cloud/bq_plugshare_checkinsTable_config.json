@@ -14,7 +14,7 @@
     {
       "name": "finished",
       "type": "DATETIME",
-      "mode": "REQUIRED",
+      "mode": "NULLABLE",
       "description": "Datetime of the check-in completion"
     },
     {
@@ -34,6 +34,12 @@
       "type": "STRING",
       "mode": "NULLABLE",
       "description": "Chosen problem from a pre-defined list of options"
+    },
+    {
+      "name": "rating",
+      "type": "INTEGER",
+      "mode": "NULLABLE",
+      "description": "User review rating, must be in the set 1 (positive), 0 (neutral/providing tips), or -1 (trouble charging/other problem)"
     },
     {
       "name": "connector_type",
@@ -56,7 +62,7 @@
     {
       "name": "evse_id",
       "type": "INTEGER",
-      "mode": "REQUIRED",
+      "mode": "NULLABLE",
       "description": "FK to evses table"
     }
   ]

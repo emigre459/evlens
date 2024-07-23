@@ -97,7 +97,7 @@
     },
     {
       "name": "kilowatts_max",
-      "type": "STRING",
+      "type": "INTEGER",
       "mode": "NULLABLE",
       "description": "Max power transfer claimed by station in kilowatts"
     },
