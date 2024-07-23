@@ -18,10 +18,34 @@
       "description": "Charging station/location name"
     },
     {
-      "name": "station_owner",
+      "name": "network",
       "type": "STRING",
       "mode": "NULLABLE",
       "description": "Charging network operator or host owner"
+    },
+    {
+      "name": "amenities",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Semicolon-delimited Enum list of things to do nearby"
+    },
+    {
+      "name": "photos",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Semicolon-delimited list of URLs to photo images of the station"
+    },
+    {
+      "name": "evse_count",
+      "type": "INT64",
+      "mode": "NULLABLE",
+      "description": "Number of EVSEs (charger kiosks/pumps) at station"
+    },
+    {
+      "name": "access",
+      "type": "INT64",
+      "mode": "NULLABLE",
+      "description": "1: publicly available, all others are unhelpful"
     },
     {
       "name": "location_type",
@@ -33,7 +57,19 @@
       "name": "parking",
       "type": "STRING",
       "mode": "NULLABLE",
-      "description": "Describes if parking costs money and how one parks while charging (e.g. 'Pull in parking')"
+      "description": "Semicolon-delimited list of ways in which one parks while charging (e.g. 'PULL_IN')"
+    },
+    {
+      "name": "parking_level",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "In multi-story parking facilities, a string with the name of the floor where chargers are installed, as labeled on site."
+    },
+    {
+      "name": "overhead_clearance_meters",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "The maximum vehicle height, if applicable, for entering the parking facility."
     },
     {
       "name": "description",
@@ -48,22 +84,40 @@
       "description": "Plaintext address of station"
     },
     {
+      "name": "phone",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Phone number of station"
+    },
+    {
       "name": "plugscore",
       "type": "FLOAT",
       "mode": "NULLABLE",
       "description": "PlugShare-derived score of station quality"
     },
     {
-      "name": "wattage",
+      "name": "kilowatts_max",
       "type": "STRING",
       "mode": "NULLABLE",
-      "description": "Power transfer (sometimes a range) claimed by station in watts"
+      "description": "Max power transfer claimed by station in kilowatts"
     },
     {
       "name": "service_hours",
       "type": "STRING",
       "mode": "NULLABLE",
       "description": "Plaintext description of when station is open"
+    },
+    {
+      "name": "open247",
+      "type": "BOOL",
+      "mode": "NULLABLE",
+      "description": "Indicates that station never closes (likely self-serve)"
+    },
+    {
+      "name": "coming_soon",
+      "type": "BOOL",
+      "mode": "NULLABLE",
+      "description": "Indicates if a station has not yet opened"
     },
     {
       "name": "checkin_count",

@@ -1,21 +1,39 @@
 [
     {
       "name": "id",
-      "type": "STRING",
+      "type": "INTEGER",
       "mode": "REQUIRED",
-      "description": "Primary key of table (UUID4)"
+      "description": "Primary key of table from Plugshare"
     },
     {
-      "name": "date",
-      "type": "DATE",
+      "name": "created_at",
+      "type": "DATETIME",
       "mode": "REQUIRED",
-      "description": "Date of the check-in"
+      "description": "Datetime of the initial check-in"
     },
     {
-      "name": "car",
+      "name": "finished",
+      "type": "DATETIME",
+      "mode": "REQUIRED",
+      "description": "Datetime of the check-in completion"
+    },
+    {
+      "name": "charging_time",
+      "type": "RANGE",
+      "mode": "REQUIRED",
+      "description": "Timedelta between start and finish"
+    },
+    {
+      "name": "vehicle_name",
       "type": "STRING",
       "mode": "NULLABLE",
       "description": "Type of car used for charging at the time of check-in"
+    },
+    {
+      "name": "vehicle_year",
+      "type": "INTEGER",
+      "mode": "NULLABLE",
+      "description": "Model year of car used for charging at the time of check-in"
     },
     {
       "name": "problem",
@@ -25,9 +43,9 @@
     },
     {
       "name": "connector_type",
-      "type": "STRING",
+      "type": "INTEGER",
       "mode": "NULLABLE",
-      "description": "Type of plug connector used during session"
+      "description": "Enum type of plug connector used during session"
     },
     {
       "name": "charge_power_kilowatts",
@@ -42,9 +60,9 @@
       "description": "Check-in free text"
     },
     {
-      "name": "station_id",
-      "type": "STRING",
+      "name": "evse_id",
+      "type": "INTEGER",
       "mode": "REQUIRED",
-      "description": "FK to stations table, UUID4"
+      "description": "FK to evses table"
     }
   ]
