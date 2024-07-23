@@ -18,12 +18,6 @@
       "description": "Datetime of the check-in completion"
     },
     {
-      "name": "charging_time",
-      "type": "RANGE",
-      "mode": "REQUIRED",
-      "description": "Timedelta between start and finish"
-    },
-    {
       "name": "vehicle_name",
       "type": "STRING",
       "mode": "NULLABLE",
