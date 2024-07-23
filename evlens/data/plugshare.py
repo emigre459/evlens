@@ -11,6 +11,7 @@ from json import loads
 # from selenium import webdriver
 from seleniumwire2.utils import decode
 from seleniumwire2 import webdriver
+from seleniumwire2.request import Request
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -268,6 +269,159 @@ class MainMapScraper:
         self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         self.driver.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.53 Safari/537.36'})
         
+    def _parse_api_response(
+        self,
+        r: Request
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+        body = decode(
+            r.response.body,
+            r.response.headers.get("Content-Encoding", "identity")
+        )
+
+        # Station
+        # df_station = pd.json_normalize(loads(body))
+        df_station = pd.DataFrame([loads(body)])
+        df_station.connector_types = df_station.connector_types.str.join(";")
+        
+        #TODO: needs to translate from enum values to string values
+        df_station.amenities = pd.DataFrame(df_station.loc[0,'amenities'])['type'].astype(str).str.cat(sep=';')
+        df_station.photos = ';'.join([p['url'] for p in df_station.loc[0, 'photos']])
+        
+        # Grab data needed for other tables before dropping columns
+        df_evses = pd.DataFrame(df_station.loc[0, 'stations'])
+        df_checkins = pd.DataFrame(df_station.loc[0, 'reviews'])
+        
+        # We can return df_plugs if we want, but currently seem too detailed to be useful
+        df_plugs = pd.DataFrame(df_evses['outlets'].explode().tolist())
+        df_plugs['evse_id'] = df_evses.explode('outlets')['id'].values
+        
+        df_station.rename(columns={
+            'id': 'location_id',
+            'poi_name': 'location_type',
+            'station_count': 'evse_count',
+            'total_reviews': 'checkin_count',
+            'parking_attributes': 'parking',
+            'score': 'plugscore',
+            'hours': 'service_hours'
+        }, inplace=True)
+        
+        # Make a string for consistency with locationID table PK
+        df_station.location_id = df_station.location_id.astype(str)
+        df_station.parking = df_station.parking.str.join(';')
+        
+        cols_of_interest = [
+            'location_id',
+            'name',
+            'description',
+            'amenities',
+            'photos',
+            'plugscore',
+            'evse_count',
+            'access',
+            'phone',
+            'address',
+            'location_type',
+            'service_hours',
+            'open247',
+            'coming_soon',
+            'parking',
+            'parking_level',
+            'overhead_clearance_meters',
+            'checkin_count'
+        ]
+        df_station = df_station[cols_of_interest]
+        
+        # EVSEs
+        network_name = pd.DataFrame(df_evses['network'].tolist())['name']\
+            .dropna().drop_duplicates()
+        if len(network_name) > 1:
+            network_names = network_name.str.join(";")
+        else:
+            network_names = network_name.iloc[0]
+            
+        df_evses['network_names'] = network_names
+        df_evses.rename(columns={
+            'location_id': 'station_id'
+        }, inplace=True)
+        
+        cols_of_interest = [
+            'id',
+            'name',
+            'network_names',
+            'kilowatts',
+            'manufacturer',
+            'model',
+            'station_id',
+            'available'
+        ]
+        df_evses = df_evses[cols_of_interest]
+        df_station['kilowatts_max'] = df_evses['kilowatts'].max()
+        df_station['network'] = df_evses.loc[0, 'network_names']
+        
+        # Reviews/check-ins data
+        df_checkins = df_checkins[df_checkins['spam_category_description'].isnull()]
+        
+        df_checkins.rename(columns={
+            'station_id': 'evse_id',
+            'problem_description': 'problem',
+            'kilowatts': 'charge_power_kilowatts'
+        }, inplace=True)
+        
+        # Get how long it took
+        df_checkins['finished'] = pd.to_datetime(df_checkins['finished'])
+        df_checkins['created_at'] = pd.to_datetime(df_checkins['created_at'])
+        # df_checkins['charging_time'] = df_checkins['finished'] - df_checkins['created_at']
+        
+        # Extract year from strings structured like 'Hyundai Ioniq Electric 2019'
+        df_checkins['vehicle_year'] = df_checkins.loc[:, 'vehicle_name'].str.extract(r'(\d{4}$)').astype(float)
+        
+        #TODO: map enum values to connector names for connector_type
+        
+        cols_of_interest = [
+            'id',
+            'evse_id',
+            'comment',
+            'created_at',
+            'finished',
+            # 'charging_time', # TODO: need to calculate this in BQ directly as a RANGE type
+            'connector_type',
+            'charge_power_kilowatts',
+            'problem',
+            'rating',
+            'vehicle_name',
+            'vehicle_year'
+        ]
+        df_checkins = df_checkins[cols_of_interest]
+        
+        return df_station, df_checkins, df_evses#, df_plugs
+        
+        
+        
+    def _catch_api_response(self, location_id: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        try:
+            #WARNING: there may be multiple requests with this URL, but the last one is probably the successful one that actually has a response JSON to parse
+            r = self.driver.wait_for_request(
+                r'https://api.plugshare.com/v3/locations/' + location_id,
+                timeout=self.timeout
+            )
+            if r.response.status_code == 200 or r.response.status_code == '200':
+                df_station, df_checkins, df_evses = self._parse_api_response(r)
+                del self.driver.requests
+                
+                return df_station, df_checkins, df_evses
+            
+            else:
+                logger.error("Response code is %s for location ID %s, moving on", r.response.status_code, location_id)
+                return None
+            
+        except (TimeoutException, NoSuchElementException):
+            logger.error("No station at location %s, moving on!", location_id, exc_info=False)
+            return None
+        
+        except:
+            logger.error("Unknown exception when waiting for data at location %s", location_id, exc_info=True)
+            return None
+        
     def save_error_screenshot(self, filename: str):
         filename = get_current_datetime() \
             + '_' + str(os.getpid()) + '_' + filename
@@ -356,166 +510,28 @@ class MainMapScraper:
     def scrape_location(
         self,
         location_id: str
-        ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         '''
         Scrapes a single location (single webpage)
 
         Returns
         -------
-        Tuple[pd.DataFrame, pd.DataFrame]
-            (Single-row dataframe with location metadata, dataframe with one row per check-in comment)
+        Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]
+            (
+                Single-row dataframe with location metadata, dataframe with one row per check-in comment
+                
+                Checkins dataframe with ~50 reviews for the station (if that many exist)
+                
+                EVSE data/charging kiosk data for the station
+            )
         '''
         if isinstance(location_id, int):
             logger.warning("location_id came through as int, should be str. Casting to str...")
             location_id = str(location_id).zfill(6)
-        
-        output = dict()
-        
-        logger.info("Starting page scrape...")
-        try: ## FIND STATION NAME
-            output['name'] = self.wait.until(EC.visibility_of_element_located((
-                By.XPATH,
-                "//*[@id=\"display-name\"]/div/h1"
-            ))).text
             
-        except (NoSuchElementException, TimeoutException):
-            logger.error("Station name error, skipping...")
-            return (pd.DataFrame(), pd.DataFrame())
-            
-        try:
-            output['station_owner'] = self.wait.until(EC.visibility_of_element_located((
-                By.XPATH,
-                '//*[@id="ports"]/div[2]/span'
-            ))).text
-            
-        except (NoSuchElementException, TimeoutException):
-            logger.error("Can't find station owner")
-            output['station_owner'] = np.nan
-            
-        try:
-            output['location_type'] = self.wait.until(EC.visibility_of_element_located((
-                By.XPATH,
-                '//*[@id="ports"]/div[4]'
-            ))).text
-            
-        except (NoSuchElementException, TimeoutException):
-            logger.error("Can't find location type")
-            output['location_type'] = np.nan
-        
-        try: ## FIND STATION ADDRESS
-            
-            output['address'] = self.driver.find_element(By.XPATH, "//*[@id=\"info\"]/div[2]/div[3]/div[2]/a[1]").text
-            
-        except (NoSuchElementException, TimeoutException):
-            logger.error("Station address error", exc_info=True)
-            output['address'] = np.nan
-        
-        try: ## FIND STATION RATING
-            
-            output['plugscore'] = float(self.driver.find_element(By.XPATH, "//*[@id=\"plugscore\"]").text)
-            
-        except (NoSuchElementException, TimeoutException):
-            logger.error("Station rating error", exc_info=True)
-            output['plugscore'] = np.nan
-
-        try: ## FIND STATION WATTAGE
-            
-            output['wattage'] = self.driver.find_element(By.XPATH, "//*[@id=\"ports\"]/div[3]").text
-            
-        except (NoSuchElementException, TimeoutException):
-            logger.error("Wattage error", exc_info=True)
-            output['wattage'] = np.nan
-            
-        try: ## Parking details
-            
-            output['parking'] = self.driver.find_element(
-                By.XPATH, 
-                '//*[@id="info"]/div[2]/div[6]/div[2]'
-                ).text
-            
-        except (NoSuchElementException, TimeoutException):
-            logger.error("Parking data not found", exc_info=True)
-            output['parking'] = np.nan
-            
-        try: ## FIND STATION HOURS
-            
-            output['service_hours'] = self.driver.find_element(By.XPATH, "//*[@id=\"info\"]/div[2]/div[11]/div[2]/div").text
-            
-        except (NoSuchElementException, TimeoutException):
-            logger.error("Station hours error", exc_info=True)
-            output['service_hours'] = np.nan
-            
-        try: ## Station details        
-            output['description'] = self.driver.find_element(
-                By.XPATH,
-                '//*[@id="info"]/div[2]/div[12]/div[2]/span'
-                ).text
-            
-        except (NoSuchElementException, TimeoutException):
-            logger.error("No description found", exc_info=True)
-            output['description'] = np.nan
-
-        try: # Get total check-in counts
-            def _get_checkin_count(text) -> Union[np.nan, int]:
-                match = re.search(r"\(\s*(\d+)\s*\)", text)
-                if match:
-                    return int(match.group(1))
-                return np.nan
-            
-            checkins = self.driver.find_element(
-                By.XPATH,
-                "//*[@id=\"checkins\"]"
-                ).text
-            output['checkin_count'] = _get_checkin_count(checkins)
-            
-        except (NoSuchElementException, TimeoutException):
-            logger.error("Check-in count error", exc_info=True)
-            output['checkin_count'] = np.nan
-
-        try: # PULL IN COMMENT TEXT
-            more_comments_link = self.wait.until(EC.element_to_be_clickable((
-                By.XPATH,
-                "//*[@id=\"checkins\"]/div[2]/span[3]"
-            )))
-            more_comments_link.click()
-            
-            detailed_checkins = self.driver.find_element(
-                By.XPATH,
-                "//*[@id=\"dialogContent_reviews\"]/div/div"
-            ).find_elements(By.XPATH, "./child::*")
-            
-            self.detailed_checkins = detailed_checkins
-            
-            checkin_dfs = []
-            if self.use_tqdm:
-                iterator = tqdm(detailed_checkins, desc="Parsing checkins for location")
-            else:
-                iterator = detailed_checkins
-            for checkin in iterator:
-                c = CheckIn(checkin, self.error_screenshot_savepath)
-                out = c.parse()
-                if not out.empty:
-                    checkin_dfs.append(out)
-                
-            if len(checkin_dfs) == 0:
-                logger.error("No checkins found")
-                df_checkins = pd.DataFrame()
-            else:
-                df_checkins = pd.concat(checkin_dfs, ignore_index=True)
-                df_checkins['station_id'] = location_id
-            
-        except (NoSuchElementException, TimeoutException):
-            logger.error("Comments error", exc_info=True)
-            df_checkins = pd.DataFrame()
-            
-        except Exception:
-            logger.error("Did we get blocked from clicking More Comments?", exc_info=True)
-            self.save_error_screenshot('checkins.png')
-            df_checkins = pd.DataFrame()
+        df_station, df_checkins, df_evses = self._catch_api_response(location_id)
             
         logger.info("Page scrape complete!")
-        df_station = pd.DataFrame(output, index=[0])
-        df_station['location_id'] = location_id
         df_station['id'] = BigQuery.make_uuid()
         df_station['last_scraped'] = get_current_datetime(
             date_delimiter=None,
@@ -524,7 +540,8 @@ class MainMapScraper:
         
         return (
             df_station,
-            df_checkins
+            df_checkins,
+            df_evses
         )
         
     
@@ -533,7 +550,7 @@ class MainMapScraper:
         data: pd.DataFrame,
         table_name: str
     ):
-        logger.info("Saving to BigQuery...")
+        logger.info("Saving %s rows to BigQuery...", len(data))
         if data.empty:
             logger.error("`data` empty, not saving to BigQuery`")
         else:
