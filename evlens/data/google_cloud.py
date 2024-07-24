@@ -237,7 +237,7 @@ class BigQuery:
         df: pd.DataFrame,
         dataset_name: str,
         table_name: str,
-        
+        merge_columns: Union[str, List[str]] = None
     ):
         '''
         Inserts new data as an append operation to BQ. NOTE THAT BQ DOES NOT DE-DUPLICATE DATA, IT APPENDS BLINDLY. So use with caution.
@@ -250,6 +250,8 @@ class BigQuery:
             Name of the target BQ Dataset
         table_name : str
             Name of the target BQ table
+        merge_columns : Union[str, List[str]]
+            If this should be a merge operation in which only truly new rows should be added to BQ, set this to the column names in the BQ table (and thus also in `df`) that represent a unique composite key to use for de-duplication purposes. If not None, this will query BQ for all its data in the provided table before attempting to insert new data. If no new rows are detected in `df` after comparing to the contents of the table, insertion will be aborted.
         '''
         # Set table_id to the ID of the table to create.
         table_id = self._make_table_id(dataset_name, table_name)
@@ -258,6 +260,17 @@ class BigQuery:
             df, table_id#, job_config=job_config
         )  # Make an API request.
         job.result()  # Wait for the job to complete.
+        
+        if merge_columns is not None:
+            df = self.check_and_remove_duplicates(
+                dataset_name,
+                table_name,
+                df,
+                merge_columns
+            )
+            if df is None or df.empty:
+                logger.error("No new rows detected in `df` when de-duplicating with columns %s, data insertion aborted", merge_columns)
+                return
 
         table = self.client.get_table(table_id)  # Make an API request.
         logger.info(
@@ -277,3 +290,56 @@ class BigQuery:
         query = f"DELETE FROM `{table_id}` WHERE true"
         self.client.query_and_wait(query)
         logger.info("Table %s cleared", table_id)
+        
+    def check_and_remove_duplicates(
+        self,
+        dataset_name: str,
+        table_name: str,
+        data: pd.DataFrame,
+        unique_columns: Union[str, List[str]]
+    ) -> pd.DataFrame:
+        '''
+        Checks a BigQuery table to determine what, if any, duplicate rows already exist relative to the provided `data` and returns a copy of `data` with the duplicate rows removed. Useful for ensuring only unique rows are added to BigQuery (but of course at the cost of some latency).
+
+        Parameters
+        ----------
+        dataset_name : str
+            Name of the target BQ Dataset
+        table_name : str
+            Name of the target BQ table
+        data : pd.DataFrame
+            DataFrame being checked for duplicates
+        unique_columns : Union[str, List[str]]
+            Column name(s) in the BQ table and `data` that are being used to de-duplicate (e.g. an `id` column or `id` and `timestamp`).
+
+        Returns
+        -------
+        pd.DataFrame
+            De-duplicated copy of `data`. If these data were to be inserted into BigQuery, would result in totally new rows.
+        '''
+        data = data.drop_duplicates(subset=unique_columns)
+        
+        # Can get 
+        if isinstance(unique_columns, str):
+            query = f"SELECT DISTINCT {unique_columns} FROM {self._make_table_id(dataset_name, table_name)}"
+            unique_columns = [unique_columns]
+            
+        else:
+            query = f"SELECT * FROM {self._make_table_id(dataset_name, table_name)}"
+        
+        logger.info("Querying table...")
+        table_data = self.query_to_dataframe(query).drop_duplicates(subset=unique_columns)
+        logger.info("Table query done")
+        
+        # Add a column to use as a known merged column name for de-dupe
+        extra_column = [c for c in data.columns if c not in unique_columns][0]
+        table_data[extra_column] = ''
+        
+        # Filter for only those rows that did not successfully merge to table
+        results = data[data.merge(table_data, how='left', on=unique_columns)[extra_column + '_y'].isnull()]
+        
+        if results.empty:
+            logger.warning("No new data present")
+            return None
+        
+        return results

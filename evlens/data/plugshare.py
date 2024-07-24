@@ -551,7 +551,8 @@ class MainMapScraper:
     def save_to_bigquery(
         self,
         data: pd.DataFrame,
-        table_name: str
+        table_name: str,
+        merge_columns: Union[str, List[str]] = 'location_id'
     ):
         logger.info("Saving %s rows to BigQuery...", len(data))
         if data.empty:
@@ -560,7 +561,8 @@ class MainMapScraper:
             self._bq_client.insert_data(
                 data,
                 self._bq_dataset_name,
-                table_name
+                table_name,
+                merge_columns=merge_columns
             )
         
     def run(self, locations: List[str]) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -650,10 +652,11 @@ class ParallelMainMapScraper(MainMapScraper):
     def save_to_bigquery(
         self,
         data: pd.DataFrame,
-        table_name: str
+        table_name: str,
+        merge_columns: Union[str, List[str]] = 'location_id'
     ):
         retry_strategy = retry(wait=wait_random_exponential(multiplier=0.5, min=0, max=10))
-        retry_strategy(super().save_to_bigquery)(data, table_name)    
+        retry_strategy(super().save_to_bigquery)(data, table_name, merge_columns=merge_columns)    
     
     
 class LocationIDScraper(MainMapScraper):
@@ -901,7 +904,8 @@ class ParallelLocationIDScraper(LocationIDScraper):
     def save_to_bigquery(
         self,
         data: pd.DataFrame,
-        table_name: str
+        table_name: str,
+        merge_columns: Union[str, List[str]] = 'location_id'
     ):
         retry_strategy = retry(wait=wait_random_exponential(multiplier=0.5, min=0, max=10))
-        retry_strategy(super().save_to_bigquery)(data, table_name)
+        retry_strategy(super().save_to_bigquery)(data, table_name, merge_columns=merge_columns)
