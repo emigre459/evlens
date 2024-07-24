@@ -252,15 +252,7 @@ class BigQuery:
             Name of the target BQ table
         merge_columns : Union[str, List[str]]
             If this should be a merge operation in which only truly new rows should be added to BQ, set this to the column names in the BQ table (and thus also in `df`) that represent a unique composite key to use for de-duplication purposes. If not None, this will query BQ for all its data in the provided table before attempting to insert new data. If no new rows are detected in `df` after comparing to the contents of the table, insertion will be aborted.
-        '''
-        # Set table_id to the ID of the table to create.
-        table_id = self._make_table_id(dataset_name, table_name)
-
-        job = self.client.load_table_from_dataframe(
-            df, table_id#, job_config=job_config
-        )  # Make an API request.
-        job.result()  # Wait for the job to complete.
-        
+        '''        
         if merge_columns is not None:
             df = self.check_and_remove_duplicates(
                 dataset_name,
@@ -271,6 +263,14 @@ class BigQuery:
             if df is None or df.empty:
                 logger.error("No new rows detected in `df` when de-duplicating with columns %s, data insertion aborted", merge_columns)
                 return
+            
+        # Set table_id to the ID of the table to create.
+        table_id = self._make_table_id(dataset_name, table_name)
+
+        job = self.client.load_table_from_dataframe(
+            df, table_id#, job_config=job_config
+        )  # Make an API request.
+        job.result()  # Wait for the job to complete.
 
         table = self.client.get_table(table_id)  # Make an API request.
         logger.info(
