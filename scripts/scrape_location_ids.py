@@ -103,6 +103,8 @@ if __name__ == '__main__':
             args.starting_ids,
             'id'
         )
+    else:
+        checkpoint_indices = None
     
     results = parallelized_data_processing(
         ParallelLocationIDScraper,
