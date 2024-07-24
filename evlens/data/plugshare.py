@@ -378,7 +378,9 @@ class MainMapScraper:
         df_station['network'] = df_evses.loc[0, 'network_names']
         
         # Reviews/check-ins data
-        df_checkins = df_checkins[df_checkins['spam_category_description'].isnull()]
+        df_checkins = df_checkins[
+            df_checkins['spam_category_description'].isnull()
+        ]
         
         df_checkins.rename(columns={
             'station_id': 'evse_id',
@@ -413,8 +415,6 @@ class MainMapScraper:
         df_checkins = df_checkins[cols_of_interest]
         
         return df_station, df_checkins, df_evses#, df_plugs
-        
-        
         
     def _catch_api_response(self, location_id: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
         try:
@@ -548,7 +548,11 @@ class MainMapScraper:
             logger.warning("location_id came through as int, should be str. Casting to str...")
             location_id = str(location_id).zfill(6)
             
-        df_station, df_checkins, df_evses = self._catch_api_response(location_id)
+        results = self._catch_api_response(location_id)
+        if results is None:
+            return None
+        else:
+            df_station, df_checkins, df_evses = results
             
         logger.info("Page scrape complete!")
         df_station['id'] = BigQuery.make_uuid()
@@ -562,7 +566,6 @@ class MainMapScraper:
             df_checkins,
             df_evses
         )
-        
     
     def save_to_bigquery(
         self,
@@ -602,7 +605,13 @@ class MainMapScraper:
 
             self.reject_all_cookies_dialog()                
             self.exit_login_dialog()
-            df_station, df_checkins, df_evses = self.scrape_location(location_id)
+            
+            results = self.scrape_location(location_id)
+            if results is None:
+                logger.error("No data found at location_id %s", location_id)
+                continue
+            else:
+                df_station, df_checkins, df_evses = results
             
             if not df_station.empty:
                 all_stations.append(df_station)
@@ -620,15 +629,18 @@ class MainMapScraper:
                 df_evses_checkpoint = pd.concat(all_evses, ignore_index=True)
                 self.save_to_bigquery(
                     df_stations_checkpoint,
-                    'stations'
+                    'stations',
+                    merge_columns='location_id'
                 )
                 self.save_to_bigquery(
                     df_checkins_checkpoint,
-                    'checkins'
+                    'checkins',
+                    merge_columns='id'
                 )
                 self.save_to_bigquery(
                     df_evses_checkpoint,
-                    'evses'
+                    'evses',
+                    merge_columns='id'
                 )
                 
                 all_stations = []
@@ -648,15 +660,18 @@ class MainMapScraper:
         df_all_evses = pd.concat(all_evses, ignore_index=True)
         self.save_to_bigquery(
             df_all_stations,
-            'stations'
+            'stations',
+            merge_columns='location_id'
         )
         self.save_to_bigquery(
             df_all_checkins,
-            'checkins'
+            'checkins',
+            merge_columns='id'
         )
         self.save_to_bigquery(
             df_all_evses,
-            'evses'
+            'evses',
+            merge_columns='id'
         )
         
         logger.info("Scraping complete!")
