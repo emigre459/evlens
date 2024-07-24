@@ -30,7 +30,7 @@ from selenium.webdriver.chrome.service import Service
 
 from tqdm import tqdm
 import ray
-from tenacity import retry, wait_random_exponential
+from tenacity import retry, wait_random_exponential, stop_after_delay, stop_after_attempt
 
 from evlens import get_current_datetime
 from evlens.data.google_cloud import upload_file, BigQuery
@@ -573,7 +573,11 @@ class MainMapScraper:
         table_name: str,
         merge_columns: Union[str, List[str]] = 'location_id'
     ):
-        logger.info("Saving %s rows to BigQuery...", len(data))
+        logger.info(
+            "Saving %s rows to BigQuery table '%s'...",
+            len(data),
+            table_name
+        )
         if data.empty:
             logger.error("`data` empty, not saving to BigQuery`")
         else:
@@ -649,7 +653,6 @@ class MainMapScraper:
 
             #TODO: tune between page switches
             logger.info(f"Sleeping for {self.page_load_pause} seconds")
-            logger.warning("NEED TO TUNE THIS SLEEP TIME")
             sleep(self.page_load_pause)
 
         self.driver.quit()
@@ -686,7 +689,10 @@ class ParallelMainMapScraper(MainMapScraper):
         table_name: str,
         merge_columns: Union[str, List[str]] = 'location_id'
     ):
-        retry_strategy = retry(wait=wait_random_exponential(multiplier=0.5, min=0, max=10))
+        retry_strategy = retry(
+            wait=wait_random_exponential(multiplier=0.5, min=0, max=10),
+            stop=(stop_after_delay(10) | stop_after_attempt(5))
+        )
         retry_strategy(super().save_to_bigquery)(data, table_name, merge_columns=merge_columns)    
     
     
@@ -929,5 +935,8 @@ class ParallelLocationIDScraper(LocationIDScraper):
         table_name: str,
         merge_columns: Union[str, List[str]] = 'location_id'
     ):
-        retry_strategy = retry(wait=wait_random_exponential(multiplier=0.5, min=0, max=10))
+        retry_strategy = retry(
+            wait=wait_random_exponential(multiplier=0.5, min=0, max=10),
+            stop=(stop_after_delay(10) | stop_after_attempt(5))
+        )
         retry_strategy(super().save_to_bigquery)(data, table_name, merge_columns=merge_columns)

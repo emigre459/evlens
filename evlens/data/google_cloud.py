@@ -237,7 +237,8 @@ class BigQuery:
         df: pd.DataFrame,
         dataset_name: str,
         table_name: str,
-        merge_columns: Union[str, List[str]] = None
+        merge_columns: Union[str, List[str]] = None,
+        timeout: int = 10
     ):
         '''
         Inserts new data as an append operation to BQ. NOTE THAT BQ DOES NOT DE-DUPLICATE DATA, IT APPENDS BLINDLY. So use with caution.
@@ -268,7 +269,9 @@ class BigQuery:
         table_id = self._make_table_id(dataset_name, table_name)
 
         job = self.client.load_table_from_dataframe(
-            df, table_id#, job_config=job_config
+            df,
+            table_id,
+            timeout=timeout#, job_config=job_config
         )  # Make an API request.
         job.result()  # Wait for the job to complete.
 
