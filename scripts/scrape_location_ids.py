@@ -87,7 +87,7 @@ if __name__ == '__main__':
         make_criteria,
         axis=1,
         tile_type=args.search_tile_type,
-        map_pan_time=3
+        map_pan_time=5
     )
     
     # Setup save directory so we don't have a race condition setting it up
