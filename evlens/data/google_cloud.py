@@ -327,9 +327,9 @@ class BigQuery:
         else:
             query = f"SELECT * FROM {self._make_table_id(dataset_name, table_name)}"
         
-        logger.info("Querying table...")
+        logger.debug("Querying table...")
         table_data = self.query_to_dataframe(query).drop_duplicates(subset=unique_columns)
-        logger.info("Table query done")
+        logger.debug("Table query done")
         
         # Add a column to use as a known merged column name for de-dupe
         extra_column = [c for c in data.columns if c not in unique_columns][0]
@@ -339,7 +339,7 @@ class BigQuery:
         results = data[data.merge(table_data, how='left', on=unique_columns)[extra_column + '_y'].isnull()]
         
         if results.empty:
-            logger.warning("No new data present")
+            logger.debug("No new data present")
             return None
         
         return results

@@ -800,9 +800,6 @@ class LocationIDScraper(MainMapScraper):
         self,
         search_criterion: SearchCriterion
         ) -> pd.DataFrame:
-
-        # Grab map pin data seen for chargers in map viewport
-        sleep(search_criterion.time_to_pan)
             
         # Capture the API response that populates the map
         return self._catch_api_response(search_criterion.cell_id)
@@ -876,8 +873,6 @@ class LocationIDScraper(MainMapScraper):
                 # del df_locations_checkpoint
                 # gc.collect()
                 dfs = []
-            
-            sleep(search_criterion.time_to_pan)
 
         # self.driver.switch_to.default_content()
         self.driver.quit()
