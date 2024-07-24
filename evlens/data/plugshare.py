@@ -800,10 +800,6 @@ class LocationIDScraper(MainMapScraper):
         self,
         search_criterion: SearchCriterion
         ) -> pd.DataFrame:
-        
-        #TODO: test if this can be skipped now that we capture network traffic
-        # Find the map iframe and move so it's in full view for scraping
-        map_iframe = self.find_and_use_map_iframe()
 
         # Grab map pin data seen for chargers in map viewport
         sleep(search_criterion.time_to_pan)

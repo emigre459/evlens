@@ -15,7 +15,7 @@ TODAY_STRING = date.today().strftime("%m-%d-%Y")
 
 
 if __name__ == '__main__':
-    TILE_COUNT = 12
+    TILE_COUNT = 5
     
     bq = BigQuery()
     query = f"""
@@ -35,7 +35,7 @@ if __name__ == '__main__':
             wait_time_for_map_pan=map_pan_time
         )
 
-    tiles = search_tiles.apply(make_criteria, axis=1, tile_type='NREL', map_pan_time=3)
+    tiles = search_tiles.apply(make_criteria, axis=1, tile_type='NREL', map_pan_time=5)
     
     start_time = time()
     N_JOBS = 4
