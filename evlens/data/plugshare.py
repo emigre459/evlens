@@ -12,6 +12,8 @@ from json import loads
 from seleniumwire2.utils import decode
 from seleniumwire2 import webdriver
 from seleniumwire2.request import Request
+from seleniumwire2 import SeleniumWireOptions
+
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -215,7 +217,8 @@ class MainMapScraper:
         timeout: int = 3,
         page_load_pause: int = 1,
         headless: bool = True,
-        progress_bars: bool = True
+        progress_bars: bool = True,
+        selenium_wire_scopes: Union[str, List[str]] = 'https://api.plugshare.com/v3/locations/'
     ):
         self.timeout = timeout
         self.error_screenshot_savepath = error_screenshot_savepath
@@ -258,10 +261,23 @@ class MainMapScraper:
         self.prefs = {"profile.default_content_setting_values.geolocation":2} 
         self.chrome_options.add_experimental_option("prefs", self.prefs)
         
+        # Make sure we don't store requests on disk (where they can run out of space) and we don't keep too many in memory either
+        self.selenium_wire_options = SeleniumWireOptions(
+            request_storage="memory",
+            request_storage_max_size=100  # Store no more than 100 requests in memory
+        )
+        
         self.driver = webdriver.Chrome(
             options=self.chrome_options,
-            service=None
+            service=None,
+            seleniumwire_options=self.selenium_wire_options
         )
+        
+        # Only request URLs containing URL patterns defined in init will be captured and stored by selenium-wire
+        if isinstance(selenium_wire_scopes, str):
+            selenium_wire_scopes = [selenium_wire_scopes]
+        self.driver.scopes = selenium_wire_scopes
+        
         self.wait = WebDriverWait(self.driver, self.timeout)
         
         # Make sure we look less bot-like
