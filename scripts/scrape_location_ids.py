@@ -110,7 +110,7 @@ if __name__ == '__main__':
         n_jobs=-1,
         checkpoint_indices=checkpoint_indices,
         error_screenshot_savepath=error_path,
-        timeout=3,
+        timeout=5,
         headless=True,
         progress_bars=False,
         save_every=100
