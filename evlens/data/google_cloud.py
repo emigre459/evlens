@@ -9,6 +9,9 @@ import numpy as np
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
 
+# Suppress downcasting warning
+pd.set_option('future.no_silent_downcasting', True)
+
 
 # Adapted from https://cloud.google.com/storage/docs/uploading-objects#storage-upload-object-python
 def upload_file(

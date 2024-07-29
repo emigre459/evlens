@@ -6,7 +6,6 @@ from evlens.data.google_cloud import BigQuery
 
 import pandas as pd
 
-
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
 
