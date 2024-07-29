@@ -76,6 +76,12 @@ if __name__ == '__main__':
         default=-1,
         help='Number of parallel workers to use. If -1, will use num_cpus - 1'
     )
+    parser.add_argument(
+        '--map_pan_time',
+        type=int,
+        default=2,
+        help='Time in seconds to wait after entering a new lat/long coordinate (for the map to pan to new location)'
+    )
     args = parser.parse_args()
     
     # Get the search tiles from BigQuery
@@ -87,7 +93,7 @@ if __name__ == '__main__':
         make_criteria,
         axis=1,
         tile_type=args.search_tile_type,
-        map_pan_time=2
+        map_pan_time=args.map_pan_time
     )
     
     # Setup save directory so we don't have a race condition setting it up
