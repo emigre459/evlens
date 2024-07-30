@@ -120,7 +120,11 @@ def add_stations_to_map(
         else:
             network = row['ev_network']
 
-        text = station_name + "\n" + address_string + "\n\n<b>Network: </b>" + network + "\n<b>Distance off route (mi): </b>" + str(row['distance'])
+        text = station_name \
+            + "<br>" + address_string \
+            + "<br><br><b>Network: </b>" + network \
+            + "<br><b>Number of DCFC Plugs: </b>" + str(row['ev_dc_fast_num']) \
+            + "<br><b>Distance off route (mi): </b>" + str(row['distance'])
         
         return text
     
