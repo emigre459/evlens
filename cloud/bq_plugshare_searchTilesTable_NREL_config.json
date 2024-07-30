@@ -1,0 +1,68 @@
+[
+    {
+        "name": "id",
+        "type": "INTEGER",
+        "mode": "REQUIRED",
+        "description": "ID of the station from the NREL API"
+      },
+    {
+      "name": "cell_radius_mi",
+      "type": "FLOAT",
+      "mode": "REQUIRED",
+      "description": "Radius of the search cell in miles"
+    },
+    {
+      "name": "latitude",
+      "type": "FLOAT",
+      "mode": "REQUIRED",
+      "description": "Latitude of the search cell"
+    },
+    {
+        "name": "longitude",
+        "type": "FLOAT",
+        "mode": "REQUIRED",
+        "description": "Longitude of the search cell"
+    },
+    {
+        "name": "name",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Station name from NREL database"
+    },
+    {
+        "name": "num_plugs",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Number of DCFC plugs"
+    },
+    {
+        "name": "ev_connector_types",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Semicolon-delimited list of plug types at station"
+    },
+    {
+        "name": "ev_network",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Name of the EV charging network that owns the station, if any"
+    },
+    {
+        "name": "pricing",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Information about how much users must pay to charge"
+    },
+    {
+        "name": "geocode_accuracy",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Indicates how precise the latitude and longitude are. 'GPS' is best preicision, lower numbers are worse with 200-1 being country-level and 200-0 being Unknown"
+    },
+    {
+        "name": "network_ids",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "CNO-specific network IDs for stations or even down to the plug in some cases"
+    }
+  ]

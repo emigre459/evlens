@@ -1,0 +1,56 @@
+[
+    {
+      "name": "id",
+      "type": "STRING",
+      "mode": "REQUIRED",
+      "description": "Primary key of table (UUID4)"
+    },
+    {
+      "name": "parsed_datetime",
+      "type": "DATETIME",
+      "mode": "REQUIRED",
+      "description": "Date and time when scraping of this location ID was done"
+    },
+    {
+      "name": "plug_types",
+      "type": "STRING",
+      "mode": "REQUIRED",
+      "description": "Semicolon-delimited list of plugs present in the location"
+    },
+    {
+      "name": "location_id",
+      "type": "STRING",
+      "mode": "REQUIRED",
+      "description": "Plugshare-specific unique ID for a charging station/location. STR for zero padding reasons"
+    },
+    {
+      "name": "latitude",
+      "type": "FLOAT64",
+      "mode": "REQUIRED",
+      "description": "LAT of station as reported by Plugshare"
+    },
+    {
+      "name": "longitude",
+      "type": "FLOAT64",
+      "mode": "REQUIRED",
+      "description": "LONG of station as reported by Plugshare"
+    },
+    {
+      "name": "search_cell_id",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "id column from searchTiles table"
+    },
+    {
+      "name": "search_cell_id_nrel",
+      "type": "INT64",
+      "mode": "NULLABLE",
+      "description": "id column from searchTilesNREL table"
+    },
+    {
+      "name": "under_repair",
+      "type": "BOOL",
+      "mode": "NULLABLE",
+      "description": "Indicates if station is currently down for maintenance as of the parsing datetime"
+    }
+  ]

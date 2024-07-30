@@ -1,0 +1,68 @@
+[
+    {
+      "name": "id",
+      "type": "INTEGER",
+      "mode": "REQUIRED",
+      "description": "Primary key of table from Plugshare"
+    },
+    {
+      "name": "created_at",
+      "type": "DATETIME",
+      "mode": "REQUIRED",
+      "description": "Datetime of the initial check-in"
+    },
+    {
+      "name": "finished",
+      "type": "DATETIME",
+      "mode": "NULLABLE",
+      "description": "Datetime of the check-in completion"
+    },
+    {
+      "name": "vehicle_name",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Type of car used for charging at the time of check-in"
+    },
+    {
+      "name": "vehicle_year",
+      "type": "INTEGER",
+      "mode": "NULLABLE",
+      "description": "Model year of car used for charging at the time of check-in"
+    },
+    {
+      "name": "problem",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Chosen problem from a pre-defined list of options"
+    },
+    {
+      "name": "rating",
+      "type": "INTEGER",
+      "mode": "NULLABLE",
+      "description": "User review rating, must be in the set 1 (positive), 0 (neutral/providing tips), or -1 (trouble charging/other problem)"
+    },
+    {
+      "name": "connector_type",
+      "type": "INTEGER",
+      "mode": "NULLABLE",
+      "description": "Enum type of plug connector used during session"
+    },
+    {
+      "name": "charge_power_kilowatts",
+      "type": "INT64",
+      "mode": "NULLABLE",
+      "description": "Power in kilowatts (likely max) reported during charging session"
+    },
+    {
+      "name": "comment",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Check-in free text"
+    },
+    {
+      "name": "evse_id",
+      "type": "INTEGER",
+      "mode": "NULLABLE",
+      "description": "FK to evses table"
+    }
+  ]

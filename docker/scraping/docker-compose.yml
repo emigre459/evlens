@@ -1,0 +1,26 @@
+name: plugshare-scraping
+services:
+  selenium:
+    image: evlens-scraping:0.1.0
+    build: 
+      context: "../../"
+      dockerfile: ./docker/scraping/Dockerfile
+      shm_size: '4gb'
+      platforms:
+        - "linux/amd64"
+        - "linux/arm64"
+      args:
+        - SDIST=dist/evlens-0.1.0-py3-none-any.whl
+    environment:
+      GOOGLE_CLOUD_PROJECT: "evlens"
+      GOOGLE_APPLICATION_CREDENTIALS: "/app/.config/gcloud/application_default_credentials.json"
+    volumes:
+      - $HOME/.config/gcloud:/app/.config/gcloud
+    shm_size: '32gb'
+    platform: "linux/amd64"
+    ports:
+      - "4444:4444"
+    # Un-comment the following lines to enable interactive shell for debugging
+    # tty: true
+    # stdin_open: true
+    # command: ["/bin/bash"]

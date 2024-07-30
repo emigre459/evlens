@@ -3,11 +3,14 @@ import logging
 import pathlib
 import os
 
+import google.cloud.logging
+
 def setup_logger(
     logger_name=LOGGER_NAME,
     default_level=logging.INFO,
     filepath=None,
-    align_all_loggers=False
+    align_all_loggers=False,
+    send_to_gcp: bool = False
 ):
     '''
     Sets up logging consistently across modules 
@@ -63,5 +66,13 @@ def setup_logger(
         handlers=handlers,
         force=align_all_loggers
     )
+    
+    if send_to_gcp:
+        gcp_cloud_logging_client = google.cloud.logging.Client()
+        # Retrieves a Cloud Logging handler based on the environment
+        # you're running in and integrates the handler with the
+        # Python logging module. By default this captures all logs
+        # at INFO level and higher
+        gcp_cloud_logging_client.setup_logging()
 
     return logging.getLogger(logger_name)

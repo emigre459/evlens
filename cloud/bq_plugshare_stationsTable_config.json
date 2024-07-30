@@ -1,0 +1,134 @@
+[
+    {
+      "name": "id",
+      "type": "STRING",
+      "mode": "REQUIRED",
+      "description": "Primary key of table (UUID4)"
+    },
+    {
+      "name": "last_scraped",
+      "type": "DATETIME",
+      "mode": "REQUIRED",
+      "description": "Date and time data were last refreshed for a station"
+    },
+    {
+      "name": "name",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Charging station/location name"
+    },
+    {
+      "name": "network",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Charging network operator or host owner"
+    },
+    {
+      "name": "amenities",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Semicolon-delimited Enum list of things to do nearby"
+    },
+    {
+      "name": "photos",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Semicolon-delimited list of URLs to photo images of the station"
+    },
+    {
+      "name": "evse_count",
+      "type": "INT64",
+      "mode": "NULLABLE",
+      "description": "Number of EVSEs (charger kiosks/pumps) at station"
+    },
+    {
+      "name": "access",
+      "type": "INT64",
+      "mode": "NULLABLE",
+      "description": "1: publicly available, all others are unhelpful"
+    },
+    {
+      "name": "location_type",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "E.g. 'Shopping Center'"
+    },
+    {
+      "name": "parking",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Semicolon-delimited list of ways in which one parks while charging (e.g. 'PULL_IN')"
+    },
+    {
+      "name": "parking_level",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "In multi-story parking facilities, a string with the name of the floor where chargers are installed, as labeled on site."
+    },
+    {
+      "name": "overhead_clearance_meters",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "The maximum vehicle height, if applicable, for entering the parking facility."
+    },
+    {
+      "name": "description",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "A general overview of the details of a station, such as the number of different types of plugs, if an extra wide spot is in front of one, etc."
+    },
+    {
+      "name": "address",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Plaintext address of station"
+    },
+    {
+      "name": "phone",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Phone number of station"
+    },
+    {
+      "name": "plugscore",
+      "type": "FLOAT",
+      "mode": "NULLABLE",
+      "description": "PlugShare-derived score of station quality"
+    },
+    {
+      "name": "kilowatts_max",
+      "type": "INTEGER",
+      "mode": "NULLABLE",
+      "description": "Max power transfer claimed by station in kilowatts"
+    },
+    {
+      "name": "service_hours",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Plaintext description of when station is open"
+    },
+    {
+      "name": "open247",
+      "type": "BOOL",
+      "mode": "NULLABLE",
+      "description": "Indicates that station never closes (likely self-serve)"
+    },
+    {
+      "name": "coming_soon",
+      "type": "BOOL",
+      "mode": "NULLABLE",
+      "description": "Indicates if a station has not yet opened"
+    },
+    {
+      "name": "checkin_count",
+      "type": "INT64",
+      "mode": "NULLABLE",
+      "description": "Number of customer check-ins for this station tracked by PlugShare"
+    },
+    {
+      "name": "location_id",
+      "type": "STRING",
+      "mode": "REQUIRED",
+      "description": "FK to location_ids table"
+    }
+  ]

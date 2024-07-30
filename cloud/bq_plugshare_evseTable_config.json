@@ -1,0 +1,50 @@
+[
+    {
+      "name": "id",
+      "type": "INTEGER",
+      "mode": "REQUIRED",
+      "description": "Primary key of table from Plugshare"
+    },
+    {
+      "name": "name",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Name of EVSE charging kiosk that customer sees (e.g. printed on side of machine)"
+    },
+    {
+      "name": "network_names",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Semicolon-delimited names of charging network that owns EVSE (usually single value)"
+    },
+    {
+      "name": "station_id",
+      "type": "STRING",
+      "mode": "REQUIRED",
+      "description": "FK to stations table, UUID4"
+    },
+    {
+      "name": "available",
+      "type": "INTEGER",
+      "mode": "NULLABLE",
+      "description": "Enum that indicates availability status of the EVSE"
+    },
+    {
+      "name": "manufacturer",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "EVSE manufacturer name"
+    },
+    {
+      "name": "model",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "EVSE model name"
+    },
+    {
+        "name": "kilowatts",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Max kilowatts of power the EVSE can transfer to a compatible vehicle"
+      }
+  ]

@@ -80,6 +80,28 @@ env_remove:
 ## Re-create environment from clean slate
 env_rebuild: env_remove env_create
 
+## Build package so it is easily installed via Docker
+prepare_package:
+	@echo "Don't forget to update your docker-compose files with the new build path arg if you changed anything (e.g. incremented the release)!!"
+	@poetry build
+
+## Build poetry package fresh and re-build docker image with test spin-up
+rebuild_and_launch_docker_image:
+	@poetry build
+	@docker compose -f docker/scraping/docker-compose.yml up --build
+
+## Build and push to GH the latest
+build_and_push_to_gh:
+	@poetry build
+	@git add dist/ && git commit -m "Build latest pkg" && git push
+
+## If a new build is passed via GH, refresh the install
+refresh_vm_from_new_build:
+	@echo "Don't forget to activate your venv first!"
+	@git pull
+	@pip install --upgrade --force-reinstall $(ls -t dist/*.whl | head -n 1)
+
+
 ## Test python environment is setup correctly
 test_environment:
 	$(PYTHON_INTERPRETER) test_environment.py
