@@ -1,4 +1,4 @@
-from typing import List, Dict, Union, Sequence
+from typing import List, Dict, Union, Sequence, Tuple
 import os
 
 import pandas as pd
@@ -9,17 +9,24 @@ from folium import Map, Marker, Icon, PolyLine
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
 
+MOBILE_PIXEL_SIZE = (360, 640) # width, height
+
 def get_single_point(
     coordinates: Sequence[float], # should be lat, long
     location_name: str,
     popup: bool = True,
     tooltip: bool = False,
-    starting_zoom: int = 16
+    starting_zoom: int = 16,
+    map_size: Tuple[int, int] = MOBILE_PIXEL_SIZE,
+    include_zoom_widget: bool = True
 ) -> Map:
     map = Map(
         location=coordinates,
         zoom_start=starting_zoom,
-        tiles='OpenStreetMap'
+        tiles='OpenStreetMap',
+        width=map_size[0],
+        height=map_size[1],
+        zoom_control=include_zoom_widget
     )
     
     icon = Icon(color='blue', prefix='fa', icon='fa-solid fa-car')
@@ -41,13 +48,21 @@ def plot_route(
     start_location_name: str,
     end_location_name: str,
     route_coordinates: Sequence[Sequence[float]] = None,
-    starting_zoom: int = 7
+    starting_zoom: int = 7,
+    map_size: Tuple[int, int] = MOBILE_PIXEL_SIZE,
+    include_zoom_widget: bool = True
 ) -> Map:
     
     start_icon = Icon(color='green', icon='fa-solid fa-play', prefix='fa')
     end_icon = Icon(color='red', icon='fa-solid fa-stop', prefix='fa')
     
-    map = Map(location=start_coordinates, zoom_start=starting_zoom)
+    map = Map(
+        location=start_coordinates,
+        zoom_start=starting_zoom,
+        width=map_size[0],
+        height=map_size[1],
+        zoom_control=include_zoom_widget
+    )
     Marker(
         start_coordinates,
         popup=start_location_name,

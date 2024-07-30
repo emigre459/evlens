@@ -40,6 +40,7 @@ nest-asyncio = "^1.6.0"
 geodatasets = "^2024.7.0"
 folium = "^0.17.0"
 openrouteservice = "^2.3.3"
+glances = "^4.1.2"
 
 
 [build-system]
