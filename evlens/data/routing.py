@@ -15,8 +15,26 @@ def get_openrouting_route(
     end_coordinates: Tuple[float, float],
     reverse_coordinates: bool = False,
     ors_api_key: str = None
-) -> List[List[float]]:
-    
+) -> Tuple[dict, List[List[float]]]:
+    '''
+    Uses OpenStreetRouting to calculate car-driving route coordinates from A to B. 
+
+    Parameters
+    ----------
+    start_coordinates : Tuple[float, float]
+        Start point coordinates in the form (longitude, latitude) unless `reverse_coordinates` is True.
+    latend_coordinates : Tuple[float, float]
+        End point coordinates in the form (longitude, latitude) unless `reverse_coordinates` is True.
+    reverse_coordinates : bool, optional
+        Indicates if input coordinates are of form (latitude, longitude) and need to be reversed before being using by OSR, by default False
+    ors_api_key : str, optional
+        OSR API key, by default None. If None, will look for the ORS_API_KEY env var
+
+    Returns
+    -------
+    Tuple[dict, List[List[float]]]
+        Full route metadata and data and coordinate list in format [(latitude1, longitude1), (etc)], resp. Latter is useful for Folium usage, former is useful for generating Linestring to query things like NREL APIs.
+    '''
     if ors_api_key is None:
         ors_api_key = os.getenv('ORS_API_KEY')
         
@@ -34,4 +52,4 @@ def get_openrouting_route(
     # Extract only the coordinates and make them lat-long
     lat_long_coords = [list(reversed(coord)) for coord in route['features'][0]['geometry']['coordinates']]
     
-    return lat_long_coords
+    return route, lat_long_coords
