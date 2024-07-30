@@ -74,10 +74,19 @@ def plot_route(
 def add_stations_to_map(
     data: pd.DataFrame,
     map: Map,
+    networks_to_include: Union[str, List[str]] = 'all',
     tooltip: bool = False
 ) -> Map:
     
     df = data.copy()
+    ev_networks_original = df['ev_network'].unique()
+    if networks_to_include != 'all':
+        if isinstance(networks_to_include, str):
+            networks_to_include = [networks_to_include]
+        df = df[df['ev_network'].isin(networks_to_include)]
+        
+    if df.empty:
+        raise ValueError(f"No stations in allowed networks found, only found {ev_networks_original}")
     
     def build_station_text(row: pd.Series):
         address_string = row[['street_address', 'city', 'state']].fillna('').str.cat(sep=', ')
