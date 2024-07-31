@@ -5,11 +5,28 @@ import pandas as pd
 import numpy as np
 
 from folium import Map, Marker, Icon, PolyLine
+from shapely.geometry import LineString
 
 from evlens.logs import setup_logger
 logger = setup_logger(__name__)
 
 MOBILE_PIXEL_SIZE = (360, 640) # width, height
+
+
+def change_map_center(
+    map: Map,
+    center_coordinates: Sequence[float] = None, # should be lat, long
+    route_coordinates: Sequence[Sequence[float]] = None,
+    route_linestring: LineString = None
+):
+    if center_coordinates is None:
+        if route_coordinates is not None and route_linestring is None:
+            route_linestring = LineString([list(reversed(coord)) for coord in route_coordinates])
+        
+        center_coordinates = tuple(reversed(tuple(route_linestring.centroid.coords)[0]))
+        
+    map.location = center_coordinates
+    
 
 def get_single_point(
     coordinates: Sequence[float], # should be lat, long
@@ -18,12 +35,16 @@ def get_single_point(
     tooltip: bool = False,
     starting_zoom: int = 16,
     map_size: Tuple[int, int] = MOBILE_PIXEL_SIZE,
-    include_zoom_widget: bool = True
+    include_zoom_widget: bool = True,
+    map_tiles: str = 'OpenStreetMap'
 ) -> Map:
     map = Map(
         location=coordinates,
         zoom_start=starting_zoom,
-        tiles='OpenStreetMap',
+        tiles=map_tiles,
+        # tiles='https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/{y},{x},{z},0/300x200?access_token=' + os.getenv('MAPBOX_API_KEY'),
+        # attr='Mapbox Attribution',
+        # tiles='OpenTopoMap',
         width=map_size[0],
         height=map_size[1],
         zoom_control=include_zoom_widget
@@ -47,9 +68,10 @@ def plot_route(
     end_coordinates: Sequence[float],
     start_location_name: str,
     end_location_name: str,
-    route_coordinates: Sequence[Sequence[float]] = None,
+    route_coordinates: Sequence[Sequence[float]],
     starting_zoom: int = 7,
     map_size: Tuple[int, int] = MOBILE_PIXEL_SIZE,
+    map_tiles: str = 'OpenStreetMap',
     include_zoom_widget: bool = True
 ) -> Map:
     
@@ -61,7 +83,8 @@ def plot_route(
         zoom_start=starting_zoom,
         width=map_size[0],
         height=map_size[1],
-        zoom_control=include_zoom_widget
+        zoom_control=include_zoom_widget,
+        tiles=map_tiles
     )
     Marker(
         start_coordinates,
@@ -74,17 +97,18 @@ def plot_route(
         icon=end_icon
         ).add_to(map)
     
-    if route_coordinates is not None:
-        PolyLine(
-            locations=route_coordinates,
-            color='blue',
-            weight=4,
-            tooltip="Naive no-charging route",
-            smooth_factor=2.0
-        ).add_to(map)
+    PolyLine(
+        locations=route_coordinates,
+        color='blue',
+        weight=4,
+        tooltip="Naive no-charging route",
+        smooth_factor=2.0    
+    ).add_to(map)
+    
+    # Center off of the route
+    change_map_center(map, route_coordinates=route_coordinates)
     
     return map
-
 
 def add_stations_to_map(
     data: pd.DataFrame,
@@ -125,6 +149,12 @@ def add_stations_to_map(
             + "<br><br><b>Network: </b>" + network \
             + "<br><b>Number of DCFC Plugs: </b>" + str(row['ev_dc_fast_num']) \
             + "<br><b>Distance off route (mi): </b>" + str(row['distance'])
+            
+        # if 'distance_from_start' in df.columns:
+        #     text += "<br><b>Distance from route start: </b>" + str(row['distance_from_start'])
+            
+        # if 'index' in df.columns:
+        #     text += "<br><b>Index: </b>" + str(row['index'])
         
         return text
     
