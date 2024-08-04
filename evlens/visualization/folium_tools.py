@@ -36,7 +36,8 @@ def get_single_point(
     starting_zoom: int = 16,
     map_size: Tuple[int, int] = MOBILE_PIXEL_SIZE,
     include_zoom_widget: bool = True,
-    map_tiles: str = 'OpenStreetMap'
+    map_tiles: str = 'OpenStreetMap',
+    show_start_pin: bool = False
 ) -> Map:
     map = Map(
         location=coordinates,
@@ -50,15 +51,16 @@ def get_single_point(
         zoom_control=include_zoom_widget
     )
     
-    icon = Icon(color='blue', prefix='fa', icon='fa-solid fa-car')
-    
-    Marker(
-        coordinates,
-        draggable=True,
-        popup=location_name if popup else None,
-        tooltip=location_name if tooltip else None,
-        icon=icon
-    ).add_to(map)
+    if show_start_pin:
+        icon = Icon(color='blue', prefix='fa', icon='fa-solid fa-car')
+        
+        Marker(
+            coordinates,
+            draggable=True,
+            popup=location_name if popup else None,
+            tooltip=location_name if tooltip else None,
+            icon=icon
+        ).add_to(map)
     
     return map
 
@@ -72,11 +74,12 @@ def plot_route(
     starting_zoom: int = 7,
     map_size: Tuple[int, int] = MOBILE_PIXEL_SIZE,
     map_tiles: str = 'OpenStreetMap',
-    include_zoom_widget: bool = True
+    include_zoom_widget: bool = True,
+    show_start_pin: bool = False
 ) -> Map:
     
     start_icon = Icon(color='green', icon='fa-solid fa-play', prefix='fa')
-    end_icon = Icon(color='red', icon='fa-solid fa-stop', prefix='fa')
+    end_icon = Icon(color='blue', icon='fa-solid fa-stop', prefix='fa')
     
     map = Map(
         location=start_coordinates,
@@ -86,11 +89,12 @@ def plot_route(
         zoom_control=include_zoom_widget,
         tiles=map_tiles
     )
-    Marker(
-        start_coordinates,
-        popup=start_location_name,
-        icon=start_icon
-        ).add_to(map)
+    if show_start_pin:
+        Marker(
+            start_coordinates,
+            popup=start_location_name,
+            icon=start_icon
+            ).add_to(map)
     Marker(
         end_coordinates,
         popup=end_location_name,
@@ -113,6 +117,7 @@ def plot_route(
 def add_stations_to_map(
     data: pd.DataFrame,
     map: Map,
+    stations_to_use: List[int],
     networks_to_include: Union[str, List[str]] = 'all',
     tooltip: bool = False
 ) -> Map:
@@ -148,7 +153,8 @@ def add_stations_to_map(
             + "<br>" + address_string \
             + "<br><br><b>Network: </b>" + network \
             + "<br><b>Number of DCFC Plugs: </b>" + str(row['ev_dc_fast_num']) \
-            + "<br><b>Distance off route (mi): </b>" + str(row['distance'])
+            + "<br><b>Distance off route (mi): </b>" + str(row['distance']) \
+            + "<br>id=" + str(row['id'])
             
         # if 'distance_from_start' in df.columns:
         #     text += "<br><b>Distance from route start: </b>" + str(row['distance_from_start'])
@@ -156,18 +162,33 @@ def add_stations_to_map(
         # if 'index' in df.columns:
         #     text += "<br><b>Index: </b>" + str(row['index'])
         
+        if 'reliability_score' in df.columns:
+            text += "<br><br><b>Reliability Score: " + str(row['reliability_score'])
+        
         return text
     
     df['text'] = df.apply(build_station_text, axis=1)
 
     #TODO: change icon image to be logo based on network, maybe color too
-    for idx, row in df.iterrows():
+    score_to_color = {
+        1.0: 'green',
+        0.5: 'orange',
+        0.1: 'red',
+        0.0: 'red'
+    }
+    df['reliability_score'].fillna(0)
+    
+    #TODO: fa-solid fa-bolt for backup stations, fa-solid fa-battery-<full|half|three-quarters|one-quarter> based on amount to charge up
+    i = 0
+    for _, row in df[df['id'].isin(stations_to_use)].iterrows():
         Marker(
             row[['latitude', 'longitude']].values,
-            icon=Icon(color='orange', icon='fa-solid fa-bolt', prefix='fa'),
+            # icon=Icon(color='orange', icon='fa-solid fa-bolt', prefix='fa'),
+            icon=Icon(color=score_to_color[row['reliability_score']], icon='fa-solid fa-battery-full', prefix='fa'),
             tooltip=row['text'] if tooltip else None,
             popup=row['text'],
             ).add_to(map)
+        i += 1
         
     logger.info(
         "Counts of networks along the route: %s",
