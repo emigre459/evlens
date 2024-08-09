@@ -1,16 +1,16 @@
 from typing import Literal, Union
 import os
 from time import time
-from evlens.data.plugshare import ParallelLocationIDScraper, SearchCriterion
-from evlens.data.google_cloud import BigQuery
-from evlens.concurrency import parallelized_data_processing, get_batch_indices_from_identifiers
+from roadtrip.data.plugshare import ParallelLocationIDScraper, SearchCriterion
+from roadtrip.data.google_cloud import BigQuery
+from roadtrip.concurrency import parallelized_data_processing, get_batch_indices_from_identifiers
 
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 import pandas as pd
 from tqdm import tqdm
 import pandas as pd
 
-from evlens.logs import setup_logger
+from roadtrip.logs import setup_logger
 logger = setup_logger(__name__, send_to_gcp=True)
 
 from datetime import date

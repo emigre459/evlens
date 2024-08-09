@@ -1,6 +1,6 @@
-from evlens.data.google_cloud import BigQuery
+from roadtrip.data.google_cloud import BigQuery
 
-from evlens.logs import setup_logger
+from roadtrip.logs import setup_logger
 logger = setup_logger(__name__)
 
 if __name__ == '__main__':

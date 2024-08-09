@@ -32,10 +32,10 @@ from tqdm import tqdm
 import ray
 from tenacity import retry, wait_random_exponential, stop_after_delay, stop_after_attempt
 
-from evlens import get_current_datetime
-from evlens.data.google_cloud import upload_file, BigQuery
+from roadtrip import get_current_datetime
+from roadtrip.data.google_cloud import upload_file, BigQuery
 
-from evlens.logs import setup_logger
+from roadtrip.logs import setup_logger
 logger = setup_logger(__name__)
 
 import logging

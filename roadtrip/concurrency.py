@@ -7,7 +7,7 @@ import ray
 import ray.exceptions
 import pandas as pd
 
-from evlens.logs import setup_logger
+from roadtrip.logs import setup_logger
 logger = setup_logger(__name__)
 
 

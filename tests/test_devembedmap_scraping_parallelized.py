@@ -1,12 +1,12 @@
 from time import time
 import os
-from evlens.data.plugshare import ParallelLocationIDScraper, SearchCriterion
-from evlens.concurrency import parallelized_data_processing
-from evlens.data.google_cloud import BigQuery
+from roadtrip.data.plugshare import ParallelLocationIDScraper, SearchCriterion
+from roadtrip.concurrency import parallelized_data_processing
+from roadtrip.data.google_cloud import BigQuery
 
 import pandas as pd
 
-from evlens.logs import setup_logger
+from roadtrip.logs import setup_logger
 logger = setup_logger(__name__)
 
 from datetime import date

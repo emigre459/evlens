@@ -1,12 +1,12 @@
 from time import time
-from evlens.data.plugshare import LocationIDScraper, SearchCriterion
+from roadtrip.data.plugshare import LocationIDScraper, SearchCriterion
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
-from evlens.data.google_cloud import BigQuery
+from roadtrip.data.google_cloud import BigQuery
 
 # Electrify America in Springfield, VA mall parking lot
 TEST_LOCATION = 252784
 
-from evlens.logs import setup_logger
+from roadtrip.logs import setup_logger
 logger = setup_logger(__name__)
 
 from datetime import date

@@ -1,7 +1,7 @@
 from typing import List, Union
 import os
 
-from evlens.logs import setup_logger
+from roadtrip.logs import setup_logger
 logger = setup_logger(__name__, send_to_gcp=False)
 
 import requests

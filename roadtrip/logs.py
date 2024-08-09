@@ -1,4 +1,4 @@
-from evlens.config import LOGGER_FORMAT, LOGGER_NAME, DATETIME_FORMAT
+from roadtrip.config import LOGGER_FORMAT, LOGGER_NAME, DATETIME_FORMAT
 import logging
 import pathlib
 import os

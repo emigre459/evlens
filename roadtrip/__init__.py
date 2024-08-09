@@ -2,7 +2,7 @@ from datetime import datetime, UTC
 
 import pytz
 
-from evlens.config import DATETIME_FORMAT
+from roadtrip.config import DATETIME_FORMAT
 
 
 def get_current_datetime(date_delimiter="-", time_delimiter="_"):

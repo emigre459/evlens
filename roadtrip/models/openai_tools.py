@@ -6,7 +6,7 @@ import io
 import requests
 import base64
 
-from evlens.logs import setup_logger
+from roadtrip.logs import setup_logger
 logger = setup_logger()
 
 

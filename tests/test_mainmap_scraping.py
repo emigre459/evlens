@@ -1,9 +1,9 @@
-from evlens.data.plugshare import MainMapScraper
+from roadtrip.data.plugshare import MainMapScraper
 
 # Electrify America in Springfield, VA mall parking lot
 TEST_LOCATION = '252784'
 
-from evlens.logs import setup_logger
+from roadtrip.logs import setup_logger
 logger = setup_logger(__name__)
 
 from datetime import date

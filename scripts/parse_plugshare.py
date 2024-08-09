@@ -1,7 +1,7 @@
 import time
-from evlens.data.plugshare import MainMapScraper
+from roadtrip.data.plugshare import MainMapScraper
 
-from evlens.logs import setup_logger
+from roadtrip.logs import setup_logger
 logger = setup_logger(__name__)
 
    

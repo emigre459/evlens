@@ -94,3 +94,5 @@ poetry.lock
 evlens.code-workspace
 plugshare-scraping.json
 chromedriver*
+roadtripAI.code-workspace
+roadtripAI.notebooks.code-workspace

@@ -6,7 +6,7 @@ from google.cloud import bigquery
 import pandas as pd
 import numpy as np
 
-from evlens.logs import setup_logger
+from roadtrip.logs import setup_logger
 logger = setup_logger(__name__)
 
 # Suppress downcasting warning
